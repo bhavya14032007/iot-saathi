@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Learning - IoT Saathi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="learning_style.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">IoT Saathi</div>
+    <div id = "nav-links">
+        <a href="index.html" id ="home-link">Home</a>
+    </div>
+</header>
+
+<section class="page-title">
+    <h1>IoT Learning Hub</h1>
+    <p>Click on any sensor to read detailed documentation</p>
+</section>
+
+<section class="cards-container">
+
+    <!-- Arduino UNO -->
+    <a href="https://en.wikipedia.org/wiki/Arduino_Uno" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://a.pololu-files.com/picture/0J6022.1200.jpg?fbd518fd3fd0405f290dacaf144ae366=">
+            <h3>Arduino UNO</h3>
+            <p>Arduino Uno is a beginner-friendly microcontroller board based on the ATmega328P. It is widely used for building electronics and IoT projects because it is simple, affordable, and easy to program.</p>
+            <p><strong>Pins:</strong> 5V, GND, A0-A5, D0-D13</p>
+        </div>
+    </a>
+
+    <!-- ESP8266 -->
+    <a href="https://en.wikipedia.org/wiki/ESP8266" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://m.media-amazon.com/images/I/61UOyRccN0L._AC_UF1000%2C1000_QL80_.jpg">
+            <h3>ESP8266 (NodeMCU)</h3>
+            <p>ESP8266 is a low-cost Wi-Fi microcontroller used in IoT projects. It has a built-in TCP/IP stack, allowing devices to connect directly to the internet. It operates at 3.3V and can be programmed using Arduino IDE, MicroPython, or Lua. It supports GPIO pins, PWM, I2C, SPI, and serial communication. It is widely used in smart home systems, IoT automation, and remote monitoring applications.</p>
+            <p><strong>Pins:</strong> D0-D8, 3V3, GND, VIN</p>
+        </div>
+    </a>
+
+    <!-- Proximity Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Proximity_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://projects.arduinocontent.cc/cover-images/2a9dd489-3a70-4928-bf5a-a289106d2f3a.blob">
+            <h3>Proximity Sensor</h3>
+            <p>A proximity sensor detects nearby objects without physical contact. Most modules use infrared (IR) light to detect reflected signals from objects. It outputs a digital signal when an object is within a certain range. Commonly used in obstacle detection robots, automatic doors, and object counting systems.</p>
+            <p><strong>Pins:</strong> VCC, GND, OUT</p>
+        </div>
+    </a>
+
+    <!-- Ultrasonic Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Ultrasonic_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://www.sparkfun.com/media/catalog/product/cache/a793f13fd3d678cea13d28206895ba0c/1/5/15569-Ultrasonic_Distance_Sensor_-_HC-SR04-01a.jpg">
+            <h3>Ultrasonic Sensor</h3>
+            <p>An ultrasonic sensor measures distance using high-frequency sound waves. It sends an ultrasonic pulse and calculates the time taken for the echo to return. Distance is calculated using time and speed of sound. Widely used in obstacle avoidance robots, parking sensors, and distance measurement systems.</p>
+            <p><strong>Pins:</strong> VCC, Trig, Echo, GND</p>
+        </div>
+    </a>
+
+    <!-- PIR Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Passive_infrared_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://m.media-amazon.com/images/I/51wcbmunHQL.jpg">
+            <h3>PIR Sensor</h3>
+            <p>A PIR (Passive Infrared) sensor detects motion by sensing changes in infrared radiation emitted by warm objects like humans or animals. It does not emit radiation; it only detects it. Commonly used in motion alarms, automatic lights, and security systems.</p>
+            <p><strong>Pins:</strong> VCC, OUT, GND</p>
+        </div>
+    </a>
+
+    <!-- Gas Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Gas_detector" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://inwfile.com/s-cw/1siwmr.jpg">
+            <h3>Gas Sensor (MQ-2)</h3>
+            <p>A gas sensor detects the presence of gases such as LPG, methane, carbon monoxide, and smoke. It works by measuring changes in resistance when exposed to gas. Most MQ-series sensors provide analog output. Used in gas leakage detection and air quality monitoring systems.</p>
+            <p><strong>Pins:</strong> VCC, GND, A0, D0</p>
+        </div>
+    </a>
+
+    <!-- LDR -->
+    <a href="https://en.wikipedia.org/wiki/Photoresistor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://inwfile.com/s-o/6o8s9m.jpg">
+            <h3>LDR Sensor</h3>
+            <p>An LDR (Light Dependent Resistor) is a light-sensitive resistor whose resistance decreases when light intensity increases. It is an analog sensor. Commonly used in automatic street lights, light intensity monitoring, and brightness control systems.</p>
+            <p><strong>Output:</strong> Analog</p>
+        </div>
+    </a>
+
+    <!-- Soil Moisture -->
+    <a href="https://en.wikipedia.org/wiki/Soil_moisture_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://cdn1.botland.store/78149/soil-moisture-sensor.jpg">
+            <h3>Soil Moisture Sensor</h3>
+            <p>A soil moisture sensor measures the water content in soil. It works by measuring electrical resistance or capacitance between two probes inserted into the soil. It helps determine whether soil is dry or wet. Commonly used in automatic irrigation and smart agriculture systems.</p>
+            <p><strong>Pins:</strong> VCC, GND, A0, D0</p>
+        </div>
+    </a>
+
+    <!-- Rain Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Rain_gauge" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://robocraze.com/cdn/shop/products/71wjp-s2kml._sl1000.jpg?v=1743775720">
+            <h3>Rain Drop Sensor</h3>
+            <p>A rain drop sensor detects water droplets or rainfall using a conductive plate. When water falls on the plate, conductivity increases and the sensor gives a signal. It is used in rain detection systems, automatic wipers, and weather monitoring systems.</p>
+            <p><strong>Pins:</strong> VCC, GND, A0, D0</p>
+        </div>
+    </a>
+
+    <!-- RFID -->
+    <a href="https://en.wikipedia.org/wiki/Radio-frequency_identification" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://m.media-amazon.com/images/I/71kNdJbjuGL._AC_UF1000%2C1000_QL80_.jpg">
+            <h3>RFID Sensor</h3>
+            <p>An RFID sensor (Radio Frequency Identification) uses radio waves to read data stored in RFID tags or cards. It consists of a reader and a tag. When the tag comes near the reader, it transmits its unique ID. Commonly used in access control systems, attendance systems, and contactless payment systems.</p>
+            <p><strong>Protocol:</strong> SPI</p>
+        </div>
+    </a>
+
+    <!-- Fire Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Flame_detector" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://quartzcomponents.com/cdn/shop/files/IR_Flame_Fire_Sensor_Module_1.jpg?v=1740457721">
+            <h3>Fire Sensor</h3>
+            <p>A fire sensor detects flame or fire using infrared light detection. It senses specific wavelengths emitted by flames. It provides a digital output when flame is detected. Used in fire alarm systems and safety monitoring systems.</p>
+            <p><strong>Pins:</strong> VCC, GND, OUT</p>
+        </div>
+    </a>
+
+    <!-- Touch Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Touch_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://components101.com/sites/default/files/component_pin/Touch-Sensor-Pinout.png">
+            <h3>Touch Sensor</h3>
+            <p>A touch sensor detects human touch using capacitive sensing. When a finger touches the sensor surface, it changes capacitance and triggers an output signal. It works like a digital button but without mechanical parts. Used in touch lamps, control panels, and smart switches.</p>
+            <p><strong>Pins:</strong> VCC, GND, OUT</p>
+        </div>
+    </a>
+
+    <!-- DHT11 -->
+    <a href="https://en.wikipedia.org/wiki/DHT11" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://m.media-amazon.com/images/I/61oK9y53c9L._AC_UF1000%2C1000_QL80_.jpg">
+            <h3>DHT11 Sensor</h3>
+            <p>A humidity sensor measures the amount of moisture present in the air. Many modules (like DHT series) also measure temperature. It provides either digital or analog output. Used in weather stations, smart farming, air quality monitoring, and climate control systems.</p>
+            <p><strong>Pins:</strong> VCC, Data, GND</p>
+        </div>
+    </a>
+
+    <!-- Microwave Sensor -->
+    <a href="https://en.wikipedia.org/wiki/Microwave_sensor" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://m.media-amazon.com/images/I/71F83NVN44L._AC_UF894%2C1000_QL80_.jpg">
+            <h3>Microwave Sensor</h3>
+            <p>A microwave motion sensor detects movement using microwave radar signals. It sends out microwave pulses and measures reflected signals to detect motion. It can detect movement through thin walls and glass. Used in security systems and motion detection lighting.</p>
+            <p><strong>Pins:</strong> VCC, OUT, GND</p>
+        </div>
+    </a>
+
+    <!-- Time of Flight -->
+    <a href="https://en.wikipedia.org/wiki/Time-of-flight_camera" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://kuriosity.sg/cdn/shop/products/time-of-flight-distance-sensor-vl53l0x-optical-cover.jpg?v=1683955242&width=700">
+            <h3>Time of Flight Sensor</h3>
+            <p>A Time of Flight sensor measures distance by calculating the time taken by a light pulse (usually infrared laser) to travel to an object and return. It provides highly accurate distance measurement, especially at short ranges. Used in robotics, gesture recognition, and 3D mapping systems.</p>
+            <p><strong>Protocol:</strong> I2C</p>
+        </div>
+    </a>
+
+    <!-- Breadboard -->
+    <a href="https://en.wikipedia.org/wiki/Breadboard" target="_blank" class="card-link">
+        <div class="card">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/4f/Breadboard.jpg">
+            <h3>Breadboard</h3>
+            <p>Used for prototyping circuits without soldering.</p>
+        </div>
+    </a>
+
+</section>
+
+</body>
+</html>
