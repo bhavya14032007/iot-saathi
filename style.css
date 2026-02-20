@@ -183,3 +183,107 @@ nav a:hover {
     height: 60px;
 
 }
+/* ============================= */
+/* UNIVERSAL RESPONSIVE FIX */
+/* ============================= */
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+button {
+    width: auto;
+}
+
+/* ============================= */
+/* TABLET VIEW */
+/* ============================= */
+@media (max-width: 992px) {
+
+    header {
+        padding: 20px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    nav {
+        margin-top: 10px;
+    }
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .hero-left {
+        max-width: 100%;
+    }
+
+    .hero-left h1 {
+        font-size: 30px;
+    }
+
+    .section-content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .cards-container {
+        grid-template-columns: repeat(2, 1fr);
+        padding: 20px;
+    }
+
+}
+
+
+/* ============================= */
+/* MOBILE VIEW */
+/* ============================= */
+@media (max-width: 600px) {
+
+    .logo {
+        font-size: 20px;
+    }
+
+    nav {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    nav a {
+        margin: 10px 0;
+    }
+
+    .hero-left h1 {
+        font-size: 24px;
+    }
+
+    .hero-left p {
+        font-size: 16px;
+    }
+
+    .cards-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .card h3 {
+        font-size: 18px;
+    }
+
+    .card p {
+        font-size: 14px;
+    }
+
+    .card button {
+        width: 100%;
+    }
+
+}
