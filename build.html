@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Build Projects | IoT Saathi</title>
+    <link rel="stylesheet" href="build_style.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">IoT Saathi</div>
+    <a href="index.html" id="nav-links">
+        <span id="home-link">Home</span>
+    </a>
+</header>
+
+<section class="page-title">
+    <h1>Build IoT Projects</h1>
+    <p>Hands-on Arduino & ESP8266 based project ideas</p>
+</section>
+
+<section class="cards-container">
+
+    <!-- 1️⃣ Obstacle Avoidance Robot -->
+    <div class="card">
+        <img src="https://hackster.imgix.net/uploads/attachments/1153546/obstacle_avoiding-robot-using-arduino-and-ultrasonic-sensor_7tS4kDkz6N.jpg" alt="Obstacle Avoidance Robot">
+        <h3>Obstacle Avoidance Robot</h3>
+        <p><strong>Components:</strong> Arduino Uno, HC-SR04 Ultrasonic Sensor, L298N Motor Driver, DC Motors</p>
+        <p>This robot detects obstacles and automatically changes direction.</p>
+
+        <img class="diagram" src="images/ultrasonic-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>Ultrasonic VCC → 5V, GND → GND</li>
+            <li>TRIG → Pin 9, ECHO → Pin 10</li>
+            <li>Motor Driver IN1–IN4 → Pins 4,5,6,7</li>
+            <li>Connect motors to driver output</li>
+            <li>Upload obstacle avoidance code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Obstacle_avoidance" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 2️⃣ Smart Irrigation -->
+    <div class="card">
+        <img src="https://projects.arduinocontent.cc/cover-images/f0b7b8e4-3846-4115-baf8-01c38ba5d10a.png" alt="Smart Irrigation">
+        <h3>Smart Irrigation System</h3>
+        <p><strong>Components:</strong> Arduino Uno, Soil Moisture Sensor, Relay Module, Water Pump</p>
+        <p>Automatically waters plants when soil becomes dry.</p>
+
+        <img class="diagram" src="images/soil-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>Soil Sensor VCC → 5V, GND → GND</li>
+            <li>Analog OUT → A0</li>
+            <li>Relay IN → Pin 7</li>
+            <li>Water pump connected through relay</li>
+            <li>Upload irrigation code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Smart_irrigation" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 3️⃣ Home Automation -->
+    <div class="card">
+        <img src="https://content.instructables.com/FFF/V6B5/KQAX0D3U/FFFV6B5KQAX0D3U.jpg?auto=webp">
+        <h3>Smart door lock system</h3>
+        <p><strong>Components:</strong> arduino uno,servo,rfid module,breadboard ,wires,buzzer</p>
+        <p>Control appliances remotely using WiFi.</p>
+
+        <img class="diagram" src="images/esp-relay-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>Relay IN → GPIO D1</li>
+            <li>Relay VCC → 5V, GND → GND</li>
+            <li>Appliance connected to relay COM & NO</li>
+            <li>Configure WiFi credentials</li>
+            <li>Upload ESP web server code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Home_automation" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 4️⃣ Fire Detection -->
+    <div class="card">
+        <img src="https://content.instructables.com/FLJ/1VF0/IDFSFEQK/FLJ1VF0IDFSFEQK.jpg?auto=webp" alt="Fire Detection">
+        <h3>Fire Detection System</h3>
+        <p><strong>Components:</strong> Arduino Uno, Flame Sensor, Buzzer/Relay</p>
+        <p>Detects fire and triggers alarm instantly.</p>
+
+        <img class="diagram" src="images/fire-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>Flame Sensor VCC → 5V, GND → GND</li>
+            <li>OUT → Pin 2</li>
+            <li>Buzzer/Relay → Pin 8</li>
+            <li>Set flame threshold in code</li>
+            <li>Upload fire detection program</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Flame_detector" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 5️⃣ Gas Leak Detection -->
+    <div class="card">
+        <img src="https://hacksterio.s3.amazonaws.com/uploads/attachments/685776/capture_PLF2nXCh0s.PNG" alt="Gas Detection">
+        <h3>Gas Leak Detection System</h3>
+        <p><strong>Components:</strong> Arduino Uno, MQ Gas Sensor, Buzzer</p>
+        <p>Detects harmful gases and activates alarm.</p>
+
+        <img class="diagram" src="images/gas-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>MQ Sensor VCC → 5V, GND → GND</li>
+            <li>Analog OUT → A0</li>
+            <li>Buzzer → Pin 8</li>
+            <li>Set gas threshold value</li>
+            <li>Upload gas detection code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Gas_detector" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 6️⃣ Radar -->
+    <div class="card">
+        <img src="https://projects.arduinocontent.cc/cover-images/18820d21-4613-4325-860f-70b73097f1e0.jpg" alt="Arduino Radar">
+        <h3>Arduino Radar System</h3>
+        <p><strong>Components:</strong> Arduino Uno, HC-SR04, SG90 Servo</p>
+        <p>Ultrasonic sensor rotates to scan surroundings like radar.</p>
+
+        <img class="diagram" src="images/radar-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>Ultrasonic VCC → 5V, GND → GND</li>
+            <li>TRIG → Pin 9, ECHO → Pin 10</li>
+            <li>Servo Signal → Pin 6</li>
+            <li>Servo VCC → 5V, GND → GND</li>
+            <li>Upload radar scanning code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Radar" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 7️⃣ PIR Human Detection -->
+    <div class="card">
+        <img src="https://projects.arduinocontent.cc/cover-images/20878ec4-043e-4bf2-8a63-42bec277c1bf.blob" alt="PIR Detection">
+        <h3>PIR Based Human Detection</h3>
+        <p><strong>Components:</strong> Arduino Uno, PIR Sensor, LED/Buzzer</p>
+        <p>Detects human motion using infrared sensing.</p>
+
+        <img class="diagram" src="images/pir-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>PIR VCC → 5V, GND → GND</li>
+            <li>OUT → Pin 2</li>
+            <li>LED/Buzzer → Pin 13</li>
+            <li>Adjust sensitivity knob</li>
+            <li>Upload motion detection code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Passive_infrared_sensor" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 8️⃣ Microwave Human Detection -->
+    <div class="card">
+        <img src="https://circuitdigest.com/sites/default/files/circuitdiagram_mic/Arduino-RCWL-0516-Module-Interfacing-Circuit-Diagram.png" alt="Microwave Detection">
+        <h3>Microwave Human Detection</h3>
+        <p><strong>Components:</strong> Arduino Uno, RCWL-0516 Sensor, Buzzer</p>
+        <p>Detects motion using microwave radar technology.</p>
+
+        <img class="diagram" src="images/microwave-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>RCWL VCC → 5V, GND → GND</li>
+            <li>OUT → Pin 7</li>
+            <li>Buzzer → Pin 8</li>
+            <li>Set detection logic in code</li>
+            <li>Upload microwave detection program</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Microwave_motion_sensor" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+    <!-- 9️⃣ LDR Auto Light -->
+    <div class="card">
+        <img src="images/ldr.jpg" alt="LDR Auto Light">
+        <h3>Auto Light ON using LDR</h3>
+        <p><strong>Components:</strong> Arduino Uno, LDR, 10k Resistor, Relay</p>
+        <p>Automatically turns light ON in darkness.</p>
+
+        <img class="diagram" src="images/ldr-diagram.png" alt="Connection Diagram">
+
+        <ul>
+            <li>LDR one side → 5V</li>
+            <li>Other side → A0 with 10k resistor to GND</li>
+            <li>Relay IN → Pin 7</li>
+            <li>Set light threshold value</li>
+            <li>Upload automatic lighting code</li>
+        </ul>
+
+        <a href="https://en.wikipedia.org/wiki/Photoresistor" target="_blank">
+            <button>View Project</button>
+        </a>
+    </div>
+
+</section>
+
+</body>
+</html>
