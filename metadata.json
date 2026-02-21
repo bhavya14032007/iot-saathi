@@ -1,0 +1,5 @@
+{
+  "name": "IoT Saathi - Project Builder",
+  "description": "Generate Arduino code and connection diagrams for your electronics projects using AI.",
+  "requestFramePermissions": []
+}
