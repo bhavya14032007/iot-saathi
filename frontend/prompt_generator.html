@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate token-efficient Master Prompts for Embedded C++ (Arduino, ESP32, ESP8266, STM32) using Gemini API on IoT Saathi.">
+    <title>Embedded C++ Master Prompt Generator | IoT Saathi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/prompt.css">
+</head>
+<body>
+
+    <!-- Semantic Header -->
+    <header class="site-header">
+        <div class="logo-container">
+            <a href="index.html" style="display:flex; align-items:center; gap:8px;">
+                <img src="images/logo.png" alt="IoT Saathi Logo">
+                <span class="logo-text">IoT Saathi</span>
+            </a>
+            <span class="logo-tag">Prompt Engine</span>
+        </div>
+
+        <nav class="main-nav" aria-label="Main Navigation">
+            <a href="index.html">Home</a>
+            <a href="learning.html">Learning Hub</a>
+            <a href="build.html">Build Projects</a>
+            <a href="prompt_generator.html" class="active">
+                Master Prompt
+                <span class="badge-new">AI</span>
+            </a>
+            <a href="https://wa.me/919389860087" target="_blank" rel="noopener noreferrer" class="btn-etron">E-Tron Store</a>
+            <a href="https://github.com/bhavya14032007/iot-saathi" target="_blank" rel="noopener noreferrer" class="btn-github" title="View Source on GitHub">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+                GitHub
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero & Engine Status -->
+        <section class="prompt-hero">
+            <h1>Embedded C++ <span>Master Prompt</span> Generator</h1>
+            <p>Convert your IoT components, wiring specs, and project logic into a dense, token-optimized Master Prompt designed to prompt any frontier AI (Claude, GPT-4o, Gemini) to write bug-free, non-blocking firmware.</p>
+            
+            <div class="engine-status-bar">
+                <span class="status-dot" id="engine-status-dot"></span>
+                <span id="engine-status-text">Checking backend status...</span>
+            </div>
+        </section>
+
+        <!-- Workspace Section -->
+        <div class="generator-workspace">
+            
+            <!-- Left: Specification Input Form -->
+            <section class="generator-card" aria-labelledby="form-heading">
+                <div class="form-header">
+                    <h2 id="form-heading">🛠️ Hardware & Logic Specifications</h2>
+                    <p style="font-size: 0.85rem; color: var(--color-text-muted);">Fill in your system parameters or select a quick starter template below.</p>
+                </div>
+
+                <!-- Template Selector -->
+                <div class="template-section">
+                    <label>⚡ Quick Starter Blueprints:</label>
+                    <div class="templates-list" id="templates-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <form id="prompt-generator-form">
+                    <div class="form-group">
+                        <label for="project-title">Project Title / Objective *</label>
+                        <input type="text" id="project-title" class="form-control" placeholder="e.g., ESP32 Autonomous Soil Moisture & MQTT Pump Controller" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="microcontroller">Target Microcontroller</label>
+                            <select id="microcontroller" class="form-control">
+                                <option value="ESP32 Dev Module (WROOM-32 / S3)">ESP32 (WROOM-32 / S3)</option>
+                                <option value="ESP8266 NodeMCU (ESP-12E)">ESP8266 (NodeMCU v3 / D1 Mini)</option>
+                                <option value="Arduino Uno (ATmega328P)">Arduino Uno (ATmega328P)</option>
+                                <option value="Arduino Nano (ATmega328P)">Arduino Nano</option>
+                                <option value="Raspberry Pi Pico (RP2040)">Raspberry Pi Pico (RP2040)</option>
+                                <option value="STM32 Blue Pill (STM32F103C8T6)">STM32 (Blue Pill / Nucleo)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="framework">Embedded Framework</label>
+                            <select id="framework" class="form-control">
+                                <option value="Arduino C++ (PlatformIO / Arduino IDE)">Arduino C++ (Standard / PlatformIO)</option>
+                                <option value="ESP-IDF C++ (FreeRTOS Native)">ESP-IDF C++ Native</option>
+                                <option value="FreeRTOS on Arduino C++">FreeRTOS on Arduino C++</option>
+                                <option value="Bare-Metal C++ (AVR/ARM Register Level)">Bare-Metal Embedded C++</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Quick Component Selector Tags -->
+                    <div class="form-group">
+                        <label>Common Hardware Peripherals <span class="hint">(Click to toggle tags)</span></label>
+                        <div class="tag-container">
+                            <span class="tag-badge" data-name="DHT22 Sensor">DHT22 Temp/Hum</span>
+                            <span class="tag-badge" data-name="HC-SR04 Ultrasonic">HC-SR04 Ultrasonic</span>
+                            <span class="tag-badge" data-name="SSD1306 128x64 OLED (I2C)">OLED Display</span>
+                            <span class="tag-badge" data-name="5V Relay Module">Relay Module</span>
+                            <span class="tag-badge" data-name="MQ-2 Gas Sensor">MQ-2 Gas</span>
+                            <span class="tag-badge" data-name="PIR Motion Sensor">PIR Motion</span>
+                            <span class="tag-badge" data-name="Soil Moisture Sensor">Soil Moisture</span>
+                            <span class="tag-badge" data-name="RC522 RFID SPI">RC522 RFID</span>
+                            <span class="tag-badge" data-name="SG90 Micro Servo">SG90 Servo</span>
+                            <span class="tag-badge" data-name="L298N Motor Driver">L298N Driver</span>
+                            <span class="tag-badge" data-name="Active Buzzer">Buzzer</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="custom-components">Selected / Custom Components</label>
+                        <input type="text" id="custom-components" class="form-control" placeholder="e.g. DHT22, SSD1306 OLED, 5V Relay, Push Buttons">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pin-mapping">Pin / GPIO Assignments <span class="hint">(Optional)</span></label>
+                            <input type="text" id="pin-mapping" class="form-control" placeholder="e.g. DHT22 -> GPIO 4, Relay -> GPIO 5, OLED -> I2C (21, 22)">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="protocol">Communication / Network <span class="hint">(Optional)</span></label>
+                            <input type="text" id="protocol" class="form-control" placeholder="e.g. WiFi + MQTT (EMQX/Adafruit IO), HTTP REST, BLE">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requirements">Functional Logic & Flow *</label>
+                        <textarea id="requirements" class="form-control" placeholder="Describe the operational sequence:
+1. Read sensors every 10 seconds.
+2. If soil moisture < 30%, trigger relay pump for 15s.
+3. Publish JSON status to MQTT.
+4. Display metrics on OLED screen." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="constraints">Special Constraints / Safety Rules <span class="hint">(Optional)</span></label>
+                        <textarea id="constraints" class="form-control" style="min-height: 60px;" placeholder="e.g. Strictly non-blocking millis(), no delay(), watchdog timer, exponential backoff on WiFi disconnect, memory safe without dynamic String."></textarea>
+                    </div>
+
+                    <!-- Optional Gemini API Key Override -->
+                    <div class="form-group">
+                        <label for="custom-api-key">Gemini API Key <span class="hint">(Optional: uses server .env by default)</span></label>
+                        <input type="password" id="custom-api-key" class="form-control" placeholder="AIzaSy... (leave empty to use server or deterministic fallback)">
+                    </div>
+
+                    <button type="submit" id="btn-generate" class="btn-primary" style="width: 100%; font-size: 1.05rem; padding: 14px !important;">
+                        ⚡ Generate Master Prompt
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right: Generated Master Prompt Display Card -->
+            <section class="output-card" id="output-card" aria-labelledby="output-heading">
+                <div class="output-header">
+                    <h3 id="output-heading">📋 Generated Master Prompt</h3>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span class="token-badge" id="token-count-badge">0 tokens</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 0.75rem; color: #94a3b8;">
+                    Engine: <strong id="engine-badge" style="color: var(--color-primary);">Ready</strong>
+                </div>
+
+                <div class="prompt-terminal empty-state" id="prompt-terminal">
+                    <p>👈 Fill in your project specifications and click <strong>Generate Master Prompt</strong>.</p>
+                    <p style="font-size: 0.8rem; margin-top: 8px;">The synthesized prompt will appear here formatted with exact architectural constraints and ready for instant copy-paste into Claude, GPT-4o, or Gemini.</p>
+                </div>
+
+                <div class="output-actions">
+                    <button type="button" class="btn-copy" id="btn-copy-prompt">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        Copy Master Prompt
+                    </button>
+                    <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="color: #cbd5e1; border-color: #334155; font-size: 0.85rem;">
+                        Open Google AI Studio &rarr;
+                    </a>
+                </div>
+
+                <div class="how-to-use-box">
+                    <strong>💡 How to Use This Prompt:</strong>
+                    <ol style="padding-left: 18px; margin-top: 6px; line-height: 1.5;">
+                        <li>Click <strong>Copy Master Prompt</strong> above.</li>
+                        <li>Paste it into your favorite LLM (<strong>Gemini 2.0 / Claude 3.5 / GPT-4o / DeepSeek</strong>).</li>
+                        <li>The LLM will generate production-ready, non-blocking Embedded C++ without token waste or hallucinated pin mappings!</li>
+                    </ol>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Semantic Footer -->
+    <footer class="site-footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h4>
+                    <img src="images/logo.png" alt="IoT Saathi" height="28" style="display:inline-block; vertical-align:middle;">
+                    IoT Saathi
+                </h4>
+                <p>Embedded C++ Firmware Prompt Optimization Engine and IoT Hardware Guide.</p>
+                <p>Public Repository: <a href="https://github.com/bhavya14032007/iot-saathi" target="_blank" style="color:var(--color-primary); text-decoration:underline;">github.com/bhavya14032007/iot-saathi</a></p>
+            </div>
+
+            <div class="footer-column">
+                <h5>Navigation</h5>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="learning.html">Learning Hub</a></li>
+                    <li><a href="build.html">Build Projects</a></li>
+                    <li><a href="prompt_generator.html">Master Prompt Generator</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h5>Embedded Targets</h5>
+                <ul>
+                    <li><a href="prompt_generator.html">ESP32 Dev Module</a></li>
+                    <li><a href="prompt_generator.html">ESP8266 NodeMCU</a></li>
+                    <li><a href="prompt_generator.html">Arduino Uno & Nano</a></li>
+                    <li><a href="prompt_generator.html">STM32 ARM Cortex</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-column">
+                <h5>Hardware Store</h5>
+                <ul>
+                    <li><a href="https://wa.me/919389860087" target="_blank" rel="noopener noreferrer">E-Tron Components</a></li>
+                    <li><a href="https://github.com/bhavya14032007/iot-saathi" target="_blank" rel="noopener noreferrer">Source Code</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; 2026 IoT Saathi. All rights reserved. Open-source IoT initiative.</div>
+            <div class="copyright-legal">Built with Semantic HTML5, CSS Variables, 8px Grid & FastAPI.</div>
+        </div>
+    </footer>
+
+    <script src="js/prompt-generator.js"></script>
+</body>
+</html>
