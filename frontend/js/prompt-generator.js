@@ -3,14 +3,15 @@
  * Communicates with FastAPI backend for minimal-token Embedded C++ prompt generation.
  */
 
-// API Base URL resolution: supports localhost, custom Render URL, or relative /api proxy
+// API Base URL resolution: localhost for local dev, Render backend for production
 const API_BASE_URL = (() => {
     if (window.IOT_SAATHI_API_URL) return window.IOT_SAATHI_API_URL;
     if (localStorage.getItem('iot_saathi_api_url')) return localStorage.getItem('iot_saathi_api_url');
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://127.0.0.1:8000/api';
     }
-    return '/api';
+    // Production default: Render backend API
+    return 'https://iot-saathi-api.onrender.com/api';
 })();
 
 // State
