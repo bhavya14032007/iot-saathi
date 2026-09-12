@@ -82,6 +82,7 @@ def generate_prompt(req: PromptGenerationRequest):
         raise HTTPException(status_code=500, detail=f"Failed to generate master prompt: {str(e)}")
 
 if __name__ == "__main__":
+    # pyrefly: ignore [missing-import]
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
