@@ -39,3 +39,21 @@ class ProjectTemplate(BaseModel):
     communication_protocol: str
     functional_requirements: str
     special_constraints: str
+
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str = Field(..., description="Message text")
+
+class ChatFollowupRequest(BaseModel):
+    messages: List[ChatMessage] = Field(default_factory=list, description="Conversation history")
+    current_state: Optional[dict] = Field(default=None, description="Current project state parameters")
+    api_key: Optional[str] = Field(default=None, description="Optional user Gemini API key")
+
+class ChatFollowupResponse(BaseModel):
+    success: bool
+    next_question: Optional[str] = None
+    ready_for_prompt: bool = False
+    questions_answered_count: int = 0
+    project_state: dict
+    summary: Optional[str] = None
+

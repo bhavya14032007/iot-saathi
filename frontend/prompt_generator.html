@@ -37,165 +37,148 @@
     </header>
 
     <main>
-        <!-- Hero & Engine Status -->
-        <section class="prompt-hero">
-            <h1>Embedded C++ <span>Master Prompt</span> Generator</h1>
-            <p>Convert your IoT components, wiring specs, and project logic into a dense, token-optimized Master Prompt designed to prompt any frontier AI (Claude, GPT-4o, Gemini) to write bug-free, non-blocking firmware.</p>
+    <main class="chat-main-container">
+        <!-- Engine Connection Status Badge -->
+        <div class="engine-status-bar" id="engine-status-bar">
+            <span class="status-dot" id="engine-status-dot"></span>
+            <span id="engine-status-text">Connecting to IoT Saathi Engine...</span>
+        </div>
+
+        <!-- Landing State Section -->
+        <section class="ai-landing-hero">
+            <div class="ai-hero-icon" aria-hidden="true">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="5" y="5" width="14" height="14" rx="2" ry="2"/>
+                    <line x1="9" y1="1" x2="9" y2="5"/>
+                    <line x1="15" y1="1" x2="15" y2="5"/>
+                    <line x1="9" y1="19" x2="9" y2="23"/>
+                    <line x1="15" y1="1" x2="15" y2="23"/>
+                    <line x1="1" y1="9" x2="5" y2="9"/>
+                    <line x1="1" y1="15" x2="5" y2="15"/>
+                    <line x1="19" y1="9" x2="23" y2="9"/>
+                    <line x1="19" y1="15" x2="23" y2="15"/>
+                </svg>
+            </div>
             
-            <div class="engine-status-bar">
-                <span class="status-dot" id="engine-status-dot"></span>
-                <span id="engine-status-text">Checking backend status...</span>
+            <h1>What are you building?</h1>
+            <p class="ai-hero-subtitle">Tell me about your IoT project. I'll ask a few questions and build the complete prompt for you.</p>
+
+            <!-- Large AI Pill Input -->
+            <div class="ai-input-card">
+                <div class="ai-input-wrapper">
+                    <button type="button" class="btn-input-action btn-add-file" id="btn-quick-attach" title="Quick starter templates" aria-label="Quick templates">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <textarea id="ai-project-input" class="ai-textarea" rows="1" placeholder="Describe your project..."></textarea>
+                    <button type="button" class="btn-input-action btn-mic" id="btn-mic-input" title="Voice Input" aria-label="Voice input">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    </button>
+                    <button type="button" class="btn-send-ai" id="btn-send-msg" aria-label="Send message">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Starter Chips -->
+            <div class="quick-starter-chips" id="quick-starter-chips">
+                <button type="button" class="chip-item" data-template="esp32-mqtt-weather">
+                    <span class="chip-icon">🌤️</span> ESP32 weather station
+                </button>
+                <button type="button" class="chip-item" data-template="smart-irrigation-soil">
+                    <span class="chip-icon">🌱</span> Smart irrigation
+                </button>
+                <button type="button" class="chip-item" data-template="esp8266-smart-home">
+                    <span class="chip-icon">🏠</span> Home automation
+                </button>
+                <button type="button" class="chip-item" data-template="arduino-obstacle-rover">
+                    <span class="chip-icon">🤖</span> Robot project
+                </button>
+            </div>
+
+            <p class="ai-micro-note">ⓘ IoT Saathi will ask follow-up questions to fill in missing details.</p>
+        </section>
+
+        <!-- Conversational Chat Card -->
+        <section class="chat-card-container" id="chat-card-container" aria-label="Interactive AI Chat">
+            <div class="chat-messages-area" id="chat-messages-area">
+                <!-- Initial AI greeting bubble -->
+                <div class="chat-row ai-row">
+                    <div class="avatar-badge ai-avatar" title="IoT Saathi AI">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><line x1="9" y1="1" x2="9" y2="5"/><line x1="15" y1="1" x2="15" y2="5"/><line x1="9" y1="19" x2="9" y2="23"/><line x1="15" y1="19" x2="15" y2="23"/><line x1="1" y1="9" x2="5" y2="9"/><line x1="1" y1="15" x2="5" y2="15"/><line x1="19" y1="9" x2="23" y2="9"/><line x1="19" y1="15" x2="23" y2="15"/></svg>
+                    </div>
+                    <div class="bubble-content-wrap">
+                        <div class="chat-bubble ai-bubble">
+                            Great! What are you building?
+                        </div>
+                        <div class="chat-time" id="initial-ai-time">10:24 AM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Extracted Project Details Drawer / Dropdown -->
+            <div class="project-details-drawer hidden" id="project-details-drawer">
+                <div class="drawer-header">
+                    <h4>📊 Extracted Project Architecture</h4>
+                    <button type="button" class="btn-close-drawer" id="btn-close-drawer" aria-label="Close details">&times;</button>
+                </div>
+                <div class="drawer-grid">
+                    <div class="state-item"><strong>Title / Objective:</strong> <span id="state-title">Not specified</span></div>
+                    <div class="state-item"><strong>Microcontroller:</strong> <span id="state-mcu">Not specified</span></div>
+                    <div class="state-item"><strong>Framework:</strong> <span id="state-framework">Arduino C++</span></div>
+                    <div class="state-item"><strong>Peripherals / Sensors:</strong> <span id="state-components">None</span></div>
+                    <div class="state-item"><strong>Communication:</strong> <span id="state-protocol">Not specified</span></div>
+                    <div class="state-item"><strong>Pin Mapping:</strong> <span id="state-pins">Auto-assigned</span></div>
+                    <div class="state-item full-width"><strong>Functional Requirements:</strong> <span id="state-requirements">Pending details...</span></div>
+                </div>
+            </div>
+
+            <!-- Progress Bar & Footer Controls -->
+            <div class="chat-card-footer">
+                <div class="progress-wrap">
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+                    </div>
+                    <span class="progress-label" id="progress-label">0 questions answered</span>
+                </div>
+
+                <button type="button" class="btn-toggle-details" id="btn-toggle-details">
+                    Project details
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
             </div>
         </section>
 
-        <!-- Workspace Section -->
-        <div class="generator-workspace">
-            
-            <!-- Left: Specification Input Form -->
-            <section class="generator-card" aria-labelledby="form-heading">
-                <div class="form-header">
-                    <h2 id="form-heading">🛠️ Hardware & Logic Specifications</h2>
-                    <p style="font-size: 0.85rem; color: var(--color-text-muted);">Fill in your system parameters or select a quick starter template below.</p>
+        <!-- Master Prompt Output Container -->
+        <section class="master-prompt-output-section hidden" id="master-prompt-output-section" aria-label="Generated Master Prompt">
+            <div class="output-card-header">
+                <div class="output-title-group">
+                    <h3>⚡ Generated Embedded C++ Master Prompt</h3>
+                    <span class="token-count-chip" id="output-token-badge">~0 tokens</span>
                 </div>
-
-                <!-- Template Selector -->
-                <div class="template-section">
-                    <label>⚡ Quick Starter Blueprints:</label>
-                    <div class="templates-list" id="templates-list">
-                        <!-- Populated by JS -->
-                    </div>
+                <div class="engine-info-tag">
+                    Engine: <strong id="output-engine-name">Gemini Live Synthesis</strong>
                 </div>
+            </div>
 
-                <form id="prompt-generator-form">
-                    <div class="form-group">
-                        <label for="project-title">Project Title / Objective *</label>
-                        <input type="text" id="project-title" class="form-control" placeholder="e.g., ESP32 Autonomous Soil Moisture & MQTT Pump Controller" required>
-                    </div>
+            <div class="prompt-code-terminal" id="prompt-code-terminal">
+                <!-- Master prompt code will render here -->
+            </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="microcontroller">Target Microcontroller</label>
-                            <select id="microcontroller" class="form-control">
-                                <option value="ESP32 Dev Module (WROOM-32 / S3)">ESP32 (WROOM-32 / S3)</option>
-                                <option value="ESP8266 NodeMCU (ESP-12E)">ESP8266 (NodeMCU v3 / D1 Mini)</option>
-                                <option value="Arduino Uno (ATmega328P)">Arduino Uno (ATmega328P)</option>
-                                <option value="Arduino Nano (ATmega328P)">Arduino Nano</option>
-                                <option value="Raspberry Pi Pico (RP2040)">Raspberry Pi Pico (RP2040)</option>
-                                <option value="STM32 Blue Pill (STM32F103C8T6)">STM32 (Blue Pill / Nucleo)</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="framework">Embedded Framework</label>
-                            <select id="framework" class="form-control">
-                                <option value="Arduino C++ (PlatformIO / Arduino IDE)">Arduino C++ (Standard / PlatformIO)</option>
-                                <option value="ESP-IDF C++ (FreeRTOS Native)">ESP-IDF C++ Native</option>
-                                <option value="FreeRTOS on Arduino C++">FreeRTOS on Arduino C++</option>
-                                <option value="Bare-Metal C++ (AVR/ARM Register Level)">Bare-Metal Embedded C++</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Quick Component Selector Tags -->
-                    <div class="form-group">
-                        <label>Common Hardware Peripherals <span class="hint">(Click to toggle tags)</span></label>
-                        <div class="tag-container">
-                            <span class="tag-badge" data-name="DHT22 Sensor">DHT22 Temp/Hum</span>
-                            <span class="tag-badge" data-name="HC-SR04 Ultrasonic">HC-SR04 Ultrasonic</span>
-                            <span class="tag-badge" data-name="SSD1306 128x64 OLED (I2C)">OLED Display</span>
-                            <span class="tag-badge" data-name="5V Relay Module">Relay Module</span>
-                            <span class="tag-badge" data-name="MQ-2 Gas Sensor">MQ-2 Gas</span>
-                            <span class="tag-badge" data-name="PIR Motion Sensor">PIR Motion</span>
-                            <span class="tag-badge" data-name="Soil Moisture Sensor">Soil Moisture</span>
-                            <span class="tag-badge" data-name="RC522 RFID SPI">RC522 RFID</span>
-                            <span class="tag-badge" data-name="SG90 Micro Servo">SG90 Servo</span>
-                            <span class="tag-badge" data-name="L298N Motor Driver">L298N Driver</span>
-                            <span class="tag-badge" data-name="Active Buzzer">Buzzer</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="custom-components">Selected / Custom Components</label>
-                        <input type="text" id="custom-components" class="form-control" placeholder="e.g. DHT22, SSD1306 OLED, 5V Relay, Push Buttons">
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="pin-mapping">Pin / GPIO Assignments <span class="hint">(Optional)</span></label>
-                            <input type="text" id="pin-mapping" class="form-control" placeholder="e.g. DHT22 -> GPIO 4, Relay -> GPIO 5, OLED -> I2C (21, 22)">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="protocol">Communication / Network <span class="hint">(Optional)</span></label>
-                            <input type="text" id="protocol" class="form-control" placeholder="e.g. WiFi + MQTT (EMQX/Adafruit IO), HTTP REST, BLE">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="requirements">Functional Logic & Flow *</label>
-                        <textarea id="requirements" class="form-control" placeholder="Describe the operational sequence:
-1. Read sensors every 10 seconds.
-2. If soil moisture < 30%, trigger relay pump for 15s.
-3. Publish JSON status to MQTT.
-4. Display metrics on OLED screen." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="constraints">Special Constraints / Safety Rules <span class="hint">(Optional)</span></label>
-                        <textarea id="constraints" class="form-control" style="min-height: 60px;" placeholder="e.g. Strictly non-blocking millis(), no delay(), watchdog timer, exponential backoff on WiFi disconnect, memory safe without dynamic String."></textarea>
-                    </div>
-
-                    <!-- Optional Gemini API Key Override -->
-                    <div class="form-group">
-                        <label for="custom-api-key">Gemini API Key <span class="hint">(Optional: uses server .env by default)</span></label>
-                        <input type="password" id="custom-api-key" class="form-control" placeholder="AIzaSy... (leave empty to use server or deterministic fallback)">
-                    </div>
-
-                    <button type="submit" id="btn-generate" class="btn-primary" style="width: 100%; font-size: 1.05rem; padding: 14px !important;">
-                        ⚡ Generate Master Prompt
-                    </button>
-                </form>
-            </section>
-
-            <!-- Right: Generated Master Prompt Display Card -->
-            <section class="output-card" id="output-card" aria-labelledby="output-heading">
-                <div class="output-header">
-                    <h3 id="output-heading">📋 Generated Master Prompt</h3>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <span class="token-badge" id="token-count-badge">0 tokens</span>
-                    </div>
-                </div>
-
-                <div style="margin-bottom: 8px; font-size: 0.75rem; color: #94a3b8;">
-                    Engine: <strong id="engine-badge" style="color: var(--color-primary);">Ready</strong>
-                </div>
-
-                <div class="prompt-terminal empty-state" id="prompt-terminal">
-                    <p>👈 Fill in your project specifications and click <strong>Generate Master Prompt</strong>.</p>
-                    <p style="font-size: 0.8rem; margin-top: 8px;">The synthesized prompt will appear here formatted with exact architectural constraints and ready for instant copy-paste into Claude, GPT-4o, or Gemini.</p>
-                </div>
-
-                <div class="output-actions">
-                    <button type="button" class="btn-copy" id="btn-copy-prompt">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                        Copy Master Prompt
-                    </button>
-                    <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="color: #cbd5e1; border-color: #334155; font-size: 0.85rem;">
-                        Open Google AI Studio &rarr;
-                    </a>
-                </div>
-
-                <div class="how-to-use-box">
-                    <strong>💡 How to Use This Prompt:</strong>
-                    <ol style="padding-left: 18px; margin-top: 6px; line-height: 1.5;">
-                        <li>Click <strong>Copy Master Prompt</strong> above.</li>
-                        <li>Paste it into your favorite LLM (<strong>Gemini 2.0 / Claude 3.5 / GPT-4o / DeepSeek</strong>).</li>
-                        <li>The LLM will generate production-ready, non-blocking Embedded C++ without token waste or hallucinated pin mappings!</li>
-                    </ol>
-                </div>
-            </section>
-
-        </div>
+            <div class="output-action-bar">
+                <button type="button" class="btn-action btn-copy" id="btn-copy-prompt">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    Copy Master Prompt
+                </button>
+                <button type="button" class="btn-action btn-regenerate" id="btn-regenerate-prompt">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    Regenerate
+                </button>
+                <button type="button" class="btn-action btn-edit-project" id="btn-edit-project">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    Edit Project
+                </button>
+            </div>
+        </section>
     </main>
 
     <!-- Semantic Footer -->

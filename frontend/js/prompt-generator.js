@@ -1,6 +1,6 @@
 /**
- * IoT Saathi - Master Prompt Generator Engine Client
- * Communicates with FastAPI backend for minimal-token Embedded C++ prompt generation.
+ * IoT Saathi - Conversational AI Master Prompt Engine Client
+ * Interactive ChatGPT/Gemini style conversational flow for Embedded C++ Master Prompt Generation.
  */
 
 // API Base URL resolution: localhost for local dev, Render backend for production
@@ -10,28 +10,40 @@ const API_BASE_URL = (() => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://127.0.0.1:8000/api';
     }
-    // Production default: Render backend API
     return 'https://iot-saathi-api.onrender.com/api';
 })();
 
-// State
+// Application State
+let conversationState = {
+    project_title: '',
+    microcontroller: '',
+    framework: 'Arduino C++ (PlatformIO / Arduino IDE)',
+    components: [],
+    pin_mapping: '',
+    communication_protocol: '',
+    functional_requirements: '',
+    special_constraints: ''
+};
+
+let chatHistory = [];
+let questionsAnsweredCount = 0;
+let isBackendAvailable = false;
 let availableTemplates = [];
-let selectedComponents = new Set();
 
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
 async function initApp() {
-    setupComponentTagListeners();
-    setupFormSubmission();
-    setupCopyButton();
+    setupInputListeners();
+    setupQuickStarters();
+    setupDrawerAndActions();
     await checkBackendHealth();
-    await loadTemplates();
+    await fetchTemplates();
 }
 
 /**
- * Health check to verify backend connection and Gemini configuration
+ * Health check for backend connectivity and Gemini status
  */
 async function checkBackendHealth() {
     const statusText = document.getElementById('engine-status-text');
@@ -41,289 +53,626 @@ async function checkBackendHealth() {
         const res = await fetch(`${API_BASE_URL}/health`);
         if (res.ok) {
             const data = await res.json();
+            isBackendAvailable = true;
             if (statusText && statusDot) {
                 statusText.textContent = data.gemini_api_configured 
-                    ? `Backend Connected • ${data.mode}` 
-                    : `Backend Connected • Deterministic High-Yield Mode`;
+                    ? `IoT Saathi Engine • ${data.mode}` 
+                    : `IoT Saathi Engine • Deterministic Synthesis`;
                 statusDot.style.backgroundColor = 'var(--color-success)';
             }
         }
     } catch (err) {
-        console.warn('Backend server offline or unreachable. Offline synthesis will be used.', err);
+        console.warn('Backend server offline or starting up. Standalone client synthesis active.', err);
+        isBackendAvailable = false;
         if (statusText && statusDot) {
-            statusText.textContent = 'Backend Offline (Click run.py in backend to enable Gemini)';
+            statusText.textContent = 'Backend Offline (Using Standalone Client AI Synthesizer)';
             statusDot.style.backgroundColor = 'var(--color-accent)';
         }
     }
 }
 
 /**
- * Fetch and populate templates
+ * Fetch blueprints templates
  */
-async function loadTemplates() {
-    const templatesList = document.getElementById('templates-list');
-    if (!templatesList) return;
-
+async function fetchTemplates() {
     try {
         const res = await fetch(`${API_BASE_URL}/templates`);
         if (res.ok) {
             availableTemplates = await res.json();
         }
     } catch (err) {
-        // Fallback default templates if backend is starting
+        // Default blueprint templates fallback
         availableTemplates = [
             {
-                id: 'esp32-weather',
+                id: 'esp32-mqtt-weather',
                 title: 'ESP32 MQTT Weather Station',
                 microcontroller: 'ESP32 Dev Module',
-                framework: 'Arduino C++ (PlatformIO / Arduino IDE)',
-                components: ['DHT22 (Temp & Humidity)', 'BMP280 (Pressure)', 'SSD1306 OLED', 'Status LED'],
-                pin_mapping: 'DHT22 Data -> GPIO 4 | OLED/BMP280 I2C -> SDA (21), SCL (22) | LED -> GPIO 2',
-                communication_protocol: 'WiFi + MQTT (PubSubClient) to Adafruit IO',
-                functional_requirements: 'Sample environmental sensors every 15s. Display values on OLED. Publish JSON payload to MQTT topic. Reconnect with exponential backoff on drop.',
-                special_constraints: 'Zero blocking delay() calls. Use millis() timers. Include watchdog timer and I2C error recovery.'
+                components: ['DHT22 (Temp & Humidity)', 'BMP280 (Pressure)', 'SSD1306 OLED'],
+                functional_requirements: 'Read sensors every 15s, display metrics on OLED, publish JSON telemetry to MQTT.'
             },
             {
-                id: 'obstacle-robot',
-                title: 'Arduino Obstacle Avoidance Robot',
-                microcontroller: 'Arduino Uno (ATmega328P)',
-                framework: 'Arduino C++',
-                components: ['HC-SR04 Ultrasonic Sensor', 'SG90 Micro Servo', 'L298N Motor Driver', '2x DC Motors', 'Buzzer'],
-                pin_mapping: 'HC-SR04 -> Trig 9, Echo 10 | Servo -> Pin 6 | L298N -> IN1-IN4 (4,5,7,8), ENA(3), ENB(11) | Buzzer -> Pin 12',
-                communication_protocol: 'Autonomous Local Control',
-                functional_requirements: 'Drive forward continuously. If obstacle < 25cm, stop motors, scan 45 deg left and 135 deg right with servo, turn toward clearest direction, resume forward motion.',
-                special_constraints: 'State machine architecture with enum RobotState. Non-blocking sensor pulses.'
+                id: 'smart-irrigation-soil',
+                title: 'Smart Irrigation with Soil Moisture & Rain Sensor',
+                microcontroller: 'Arduino Nano',
+                components: ['Soil Moisture Sensor', 'Rain Sensor', '5V Relay Pump', '16x2 I2C LCD'],
+                functional_requirements: 'Sample soil moisture every 5s. If moisture < 35% and no rain, energize pump relay.'
             },
             {
-                id: 'esp8266-home',
-                title: 'ESP8266 4-Ch Smart Relay Web Server',
+                id: 'esp8266-smart-home',
+                title: 'ESP8266 4-Channel Home Automation Web Server',
                 microcontroller: 'ESP8266 (NodeMCU)',
-                framework: 'Arduino C++ (ESP8266WebServer)',
-                components: ['4-Channel 5V Relay Module', 'DHT11 Sensor', '4x Push Buttons', 'Status LED'],
-                pin_mapping: 'Relays -> D1, D2, D5, D6 | DHT11 -> D7 | Buttons -> D3, D8, D0, RX',
-                communication_protocol: 'WiFi 802.11 b/g/n + Web Server UI & REST API',
-                functional_requirements: 'Host responsive HTML dashboard with appliance toggle buttons. Allow manual physical push button toggles with debounce. Persist states in LittleFS.',
-                special_constraints: 'Non-blocking 50ms software debounce. REST API endpoints /api/status and /api/relay.'
+                components: ['4-Channel Relay Module', 'DHT11 Sensor', '4x Push Buttons'],
+                functional_requirements: 'Host responsive HTML dashboard with relay toggles and manual push button overrides.'
+            },
+            {
+                id: 'arduino-obstacle-rover',
+                title: 'Obstacle Avoidance Robot with Ultrasonic Radar',
+                microcontroller: 'Arduino Uno',
+                components: ['HC-SR04 Ultrasonic', 'SG90 Servo', 'L298N Motor Driver', 'Buzzer'],
+                functional_requirements: 'Drive forward continuously. If obstacle < 25cm, stop, sweep servo left/right, turn and resume.'
             }
         ];
     }
-
-    templatesList.innerHTML = '';
-    availableTemplates.forEach(t => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'template-chip';
-        chip.textContent = t.title;
-        chip.addEventListener('click', () => applyTemplate(t));
-        templatesList.appendChild(chip);
-    });
 }
 
 /**
- * Apply a selected template into form fields
+ * Setup Textarea resizing, Enter send key handlers, Mic button
  */
-function applyTemplate(template) {
-    document.getElementById('project-title').value = template.title;
-    document.getElementById('microcontroller').value = template.microcontroller;
-    document.getElementById('framework').value = template.framework;
-    document.getElementById('pin-mapping').value = template.pin_mapping;
-    document.getElementById('protocol').value = template.communication_protocol;
-    document.getElementById('requirements').value = template.functional_requirements;
-    document.getElementById('constraints').value = template.special_constraints;
+function setupInputListeners() {
+    const textarea = document.getElementById('ai-project-input');
+    const sendBtn = document.getElementById('btn-send-msg');
+    const micBtn = document.getElementById('btn-mic-input');
 
-    // Reset and select component tags
-    selectedComponents.clear();
-    document.querySelectorAll('.tag-badge').forEach(tag => {
-        const name = tag.dataset.name;
-        if (template.components.some(c => c.toLowerCase().includes(name.toLowerCase()))) {
-            tag.classList.add('selected');
-            selectedComponents.add(name);
-        } else {
-            tag.classList.remove('selected');
-        }
-    });
+    if (textarea) {
+        // Auto-expand textarea
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        });
 
-    updateCustomComponentsInput();
-}
-
-/**
- * Component tag toggling
- */
-function setupComponentTagListeners() {
-    document.querySelectorAll('.tag-badge').forEach(tag => {
-        tag.addEventListener('click', () => {
-            const name = tag.dataset.name;
-            if (selectedComponents.has(name)) {
-                selectedComponents.delete(name);
-                tag.classList.remove('selected');
-            } else {
-                selectedComponents.add(name);
-                tag.classList.add('selected');
+        // Enter key = Send, Shift+Enter = Newline
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                submitUserMessage();
             }
-            updateCustomComponentsInput();
+        });
+    }
+
+    if (sendBtn) {
+        sendBtn.addEventListener('click', submitUserMessage);
+    }
+
+    // Speech Recognition feature for Mic button
+    if (micBtn) {
+        micBtn.addEventListener('click', () => {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert('Speech recognition is not supported in this browser. Please type your message.');
+                return;
+            }
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            micBtn.style.color = '#ef4444';
+            micBtn.title = 'Listening... Speak now';
+            
+            recognition.onresult = (event) => {
+                const text = event.results[0][0].transcript;
+                textarea.value = (textarea.value ? textarea.value + ' ' : '') + text;
+                textarea.dispatchEvent(new Event('input'));
+                micBtn.style.color = '';
+                micBtn.title = 'Voice Input';
+            };
+
+            recognition.onerror = () => {
+                micBtn.style.color = '';
+                micBtn.title = 'Voice Input';
+            };
+
+            recognition.onend = () => {
+                micBtn.style.color = '';
+                micBtn.title = 'Voice Input';
+            };
+
+            recognition.start();
+        });
+    }
+}
+
+/**
+ * Quick Starter Chips Setup
+ */
+function setupQuickStarters() {
+    const chips = document.querySelectorAll('.chip-item');
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const templateId = chip.dataset.template;
+            const template = availableTemplates.find(t => t.id === templateId);
+            const promptText = template 
+                ? `I want to build a ${template.title} using ${template.microcontroller} with ${template.components.join(', ')}.`
+                : `I want to build an ${chip.textContent.trim()} project.`;
+            
+            const textarea = document.getElementById('ai-project-input');
+            if (textarea) {
+                textarea.value = promptText;
+                textarea.dispatchEvent(new Event('input'));
+                submitUserMessage();
+            }
         });
     });
 }
 
-function updateCustomComponentsInput() {
-    const input = document.getElementById('custom-components');
-    if (input) {
-        input.value = Array.from(selectedComponents).join(', ');
+/**
+ * Handle Sending User Message
+ */
+async function submitUserMessage() {
+    const textarea = document.getElementById('ai-project-input');
+    const sendBtn = document.getElementById('btn-send-msg');
+    const userText = textarea ? textarea.value.trim() : '';
+
+    if (!userText) return;
+
+    // Clear input
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    // Append User message to UI
+    const currentTime = getCurrentTimeString();
+    appendMessageBubble('user', userText, currentTime);
+    chatHistory.push({ role: 'user', content: userText });
+
+    // Show Typing Indicator
+    showTypingIndicator();
+
+    try {
+        let aiResponseData;
+
+        if (isBackendAvailable) {
+            const res = await fetch(`${API_BASE_URL}/chat-followup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: chatHistory,
+                    current_state: conversationState
+                })
+            });
+
+            if (res.ok) {
+                aiResponseData = await res.json();
+            } else {
+                throw new Error('Backend failed');
+            }
+        } else {
+            // Client-side fallback extraction
+            await new Promise(r => setTimeout(r, 600)); // Simulate thinking
+            aiResponseData = processClientSideFollowup(userText);
+        }
+
+        removeTypingIndicator();
+
+        // Update state
+        if (aiResponseData.project_state) {
+            conversationState = { ...conversationState, ...aiResponseData.project_state };
+            updateDetailsDrawerUI();
+        }
+
+        // Increment questions answered count
+        questionsAnsweredCount++;
+        updateProgressBar(questionsAnsweredCount);
+
+        // Handle question vs completion
+        if (aiResponseData.ready_for_prompt || questionsAnsweredCount >= 4 || !aiResponseData.next_question) {
+            // AI completion response
+            const finalMsg = aiResponseData.summary 
+                ? `Awesome! Here is your project summary. Whenever you're ready, click **Generate Master Prompt** to build your embedded firmware prompt!`
+                : `Great! I've gathered enough specifications for your ${conversationState.project_title || 'IoT Project'}. Click below to generate your Master Prompt.`;
+            
+            appendMessageBubble('assistant', finalMsg, getCurrentTimeString());
+            chatHistory.push({ role: 'assistant', content: finalMsg });
+            renderProjectSummaryCard();
+        } else {
+            // Ask next single question
+            const nextQ = aiResponseData.next_question;
+            appendMessageBubble('assistant', nextQ, getCurrentTimeString());
+            chatHistory.push({ role: 'assistant', content: nextQ });
+        }
+
+    } catch (err) {
+        console.warn('Chat followup error:', err);
+        removeTypingIndicator();
+        
+        // Fallback response
+        const fallbackRes = processClientSideFollowup(userText);
+        conversationState = { ...conversationState, ...fallbackRes.project_state };
+        updateDetailsDrawerUI();
+        questionsAnsweredCount++;
+        updateProgressBar(questionsAnsweredCount);
+
+        if (fallbackRes.ready_for_prompt || questionsAnsweredCount >= 4) {
+            appendMessageBubble('assistant', 'Got all the details! Click below to synthesize your C++ Master Prompt.', getCurrentTimeString());
+            renderProjectSummaryCard();
+        } else {
+            appendMessageBubble('assistant', fallbackRes.next_question, getCurrentTimeString());
+        }
+    } finally {
+        sendBtn.disabled = false;
+        scrollToBottom();
     }
 }
 
 /**
- * Form Submission & API Trigger
+ * Client-Side Smart Fallback Extractor
  */
-function setupFormSubmission() {
-    const form = document.getElementById('prompt-generator-form');
-    const submitBtn = document.getElementById('btn-generate');
-    const terminal = document.getElementById('prompt-terminal');
-    const tokenBadge = document.getElementById('token-count-badge');
-    const engineBadge = document.getElementById('engine-badge');
+function processClientSideFollowup(userText) {
+    const textLower = userText.toLowerCase();
+    const fullText = chatHistory.map(m => m.content).join(' ').toLowerCase();
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    // Title
+    if (!conversationState.project_title && userText) {
+        conversationState.project_title = userText;
+    }
 
-        const title = document.getElementById('project-title').value.trim();
-        const mcu = document.getElementById('microcontroller').value;
-        const framework = document.getElementById('framework').value;
-        const pins = document.getElementById('pin-mapping').value.trim();
-        const protocol = document.getElementById('protocol').value.trim();
-        const requirements = document.getElementById('requirements').value.trim();
-        const constraints = document.getElementById('constraints').value.trim();
-        const apiKey = document.getElementById('custom-api-key')?.value.trim();
+    // Microcontroller
+    if (!conversationState.microcontroller) {
+        if (fullText.includes('esp32')) conversationState.microcontroller = 'ESP32 Dev Module (WROOM-32 / S3)';
+        else if (fullText.includes('esp8266') || fullText.includes('nodemcu')) conversationState.microcontroller = 'ESP8266 (NodeMCU v3 / D1 Mini)';
+        else if (fullText.includes('uno')) conversationState.microcontroller = 'Arduino Uno (ATmega328P)';
+        else if (fullText.includes('nano')) conversationState.microcontroller = 'Arduino Nano (ATmega328P)';
+        else if (fullText.includes('stm32')) conversationState.microcontroller = 'STM32 Blue Pill (STM32F103C8T6)';
+        else if (fullText.includes('pico')) conversationState.microcontroller = 'Raspberry Pi Pico (RP2040)';
+    }
 
-        // Collect components from input and tags
-        const customCompText = document.getElementById('custom-components').value.trim();
-        const components = customCompText ? customCompText.split(',').map(s => s.trim()).filter(Boolean) : Array.from(selectedComponents);
+    // Components
+    const comps = new Set(conversationState.components || []);
+    if (fullText.includes('soil') || fullText.includes('moisture')) comps.add('Soil Moisture Sensor');
+    if (fullText.includes('dht22') || fullText.includes('dht11') || fullText.includes('temp')) comps.add('DHT22 Temp & Humidity Sensor');
+    if (fullText.includes('relay') || fullText.includes('pump')) comps.add('5V Relay / Water Pump');
+    if (fullText.includes('oled')) comps.add('SSD1306 OLED Display');
+    if (fullText.includes('lcd')) comps.add('16x2 I2C LCD Display');
+    if (fullText.includes('servo')) comps.add('SG90 Servo Motor');
+    if (fullText.includes('ultrasonic')) comps.add('HC-SR04 Ultrasonic Sensor');
+    conversationState.components = Array.from(comps);
 
-        if (!title || !requirements) {
-            alert('Please provide a project title and functional logic requirements.');
-            return;
-        }
+    // Communication
+    if (!conversationState.communication_protocol) {
+        if (fullText.includes('mqtt')) conversationState.communication_protocol = 'WiFi + MQTT (PubSubClient)';
+        else if (fullText.includes('wifi') || fullText.includes('web')) conversationState.communication_protocol = 'WiFi Web Server / HTTP REST';
+        else if (fullText.includes('ble') || fullText.includes('bluetooth')) conversationState.communication_protocol = 'Bluetooth LE (BLE)';
+    }
 
-        // Loading state
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '⚡ Engineering Master Prompt...';
-        terminal.classList.remove('empty-state');
-        terminal.textContent = 'Synthesizing concise Embedded C++ Master Prompt with Gemini optimization...';
+    // Functional logic
+    conversationState.functional_requirements = chatHistory.map(m => m.content).join(' • ');
 
-        const payload = {
-            project_title: title,
-            microcontroller: mcu,
-            framework: framework,
-            components: components,
-            pin_mapping: pins,
-            communication_protocol: protocol,
-            functional_requirements: requirements,
-            special_constraints: constraints,
-            api_key: apiKey || null
+    // Questions sequence
+    if (!conversationState.microcontroller) {
+        return {
+            ready_for_prompt: false,
+            next_question: 'Which microcontroller board will you be using (e.g. ESP32, Arduino Uno, ESP8266, or STM32)?',
+            project_state: conversationState
         };
+    }
 
-        try {
+    if (conversationState.components.length === 0) {
+        return {
+            ready_for_prompt: false,
+            next_question: 'Which specific sensors or modules will be connected to your board (e.g. Soil Moisture Sensor, Relay Pump, OLED Display)?',
+            project_state: conversationState
+        };
+    }
+
+    if (!fullText.includes('pump') && !fullText.includes('automatically') && !fullText.includes('control') && questionsAnsweredCount < 2) {
+        return {
+            ready_for_prompt: false,
+            next_question: 'Great! Should the system automatically control an output (like a relay or pump) based on sensor thresholds?',
+            project_state: conversationState
+        };
+    }
+
+    if (!conversationState.communication_protocol && questionsAnsweredCount < 3) {
+        return {
+            ready_for_prompt: false,
+            next_question: 'Will this project send data over WiFi / MQTT to a cloud dashboard, or run standalone locally?',
+            project_state: conversationState
+        };
+    }
+
+    return {
+        ready_for_prompt: true,
+        next_question: null,
+        summary: `Project setup for ${conversationState.project_title}`,
+        project_state: conversationState
+    };
+}
+
+/**
+ * UI Renderers
+ */
+function appendMessageBubble(role, text, timeStr) {
+    const messagesArea = document.getElementById('chat-messages-area');
+    if (!messagesArea) return;
+
+    const row = document.createElement('div');
+    row.className = `chat-row ${role === 'user' ? 'user-row' : 'ai-row'}`;
+
+    if (role === 'assistant') {
+        row.innerHTML = `
+            <div class="avatar-badge ai-avatar" title="IoT Saathi AI">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><line x1="9" y1="1" x2="9" y2="5"/><line x1="15" y1="1" x2="15" y2="5"/><line x1="9" y1="19" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/><line x1="1" y1="9" x2="5" y2="9"/><line x1="1" y1="15" x2="5" y2="15"/><line x1="19" y1="9" x2="23" y2="9"/><line x1="19" y1="15" x2="23" y2="15"/></svg>
+            </div>
+            <div class="bubble-content-wrap">
+                <div class="chat-bubble ai-bubble">${escapeHtml(text)}</div>
+                <div class="chat-time">${timeStr}</div>
+            </div>
+        `;
+    } else {
+        row.innerHTML = `
+            <div class="avatar-badge user-avatar" title="You">B</div>
+            <div class="bubble-content-wrap">
+                <div class="chat-bubble user-bubble">${escapeHtml(text)}</div>
+                <div class="chat-time">${timeStr}</div>
+            </div>
+        `;
+    }
+
+    messagesArea.appendChild(row);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    const messagesArea = document.getElementById('chat-messages-area');
+    if (!messagesArea) return;
+
+    removeTypingIndicator(); // Ensure no duplicates
+
+    const typingRow = document.createElement('div');
+    typingRow.id = 'active-typing-row';
+    typingRow.className = 'chat-row ai-row';
+    typingRow.innerHTML = `
+        <div class="avatar-badge ai-avatar" title="IoT Saathi AI">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="2"/><line x1="9" y1="1" x2="9" y2="5"/><line x1="15" y1="1" x2="15" y2="5"/><line x1="9" y1="19" x2="9" y2="23"/><line x1="15" y1="1" x2="15" y2="23"/><line x1="1" y1="9" x2="5" y2="9"/><line x1="1" y1="15" x2="5" y2="15"/><line x1="19" y1="9" x2="23" y2="9"/><line x1="19" y1="15" x2="23" y2="15"/></svg>
+        </div>
+        <div class="bubble-content-wrap">
+            <div class="chat-bubble ai-bubble">
+                <div class="typing-dots">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            </div>
+        </div>
+    `;
+    messagesArea.appendChild(typingRow);
+    scrollToBottom();
+}
+
+function removeTypingIndicator() {
+    const typingRow = document.getElementById('active-typing-row');
+    if (typingRow) typingRow.remove();
+}
+
+function updateProgressBar(count) {
+    const fill = document.getElementById('progress-bar-fill');
+    const label = document.getElementById('progress-label');
+
+    const maxQuestions = 4;
+    const percentage = Math.min(100, Math.round((count / maxQuestions) * 100));
+
+    if (fill) fill.style.width = `${percentage}%`;
+    if (label) label.textContent = `${count} question${count === 1 ? '' : 's'} answered`;
+}
+
+function updateDetailsDrawerUI() {
+    const elTitle = document.getElementById('state-title');
+    const elMcu = document.getElementById('state-mcu');
+    const elFramework = document.getElementById('state-framework');
+    const elComps = document.getElementById('state-components');
+    const elProto = document.getElementById('state-protocol');
+    const elPins = document.getElementById('state-pins');
+    const elReqs = document.getElementById('state-requirements');
+
+    if (elTitle) elTitle.textContent = conversationState.project_title || 'Not specified';
+    if (elMcu) elMcu.textContent = conversationState.microcontroller || 'ESP32 / Arduino';
+    if (elFramework) elFramework.textContent = conversationState.framework || 'Arduino C++';
+    if (elComps) elComps.textContent = conversationState.components.length > 0 ? conversationState.components.join(', ') : 'None specified';
+    if (elProto) elProto.textContent = conversationState.communication_protocol || 'Local event loop';
+    if (elPins) elPins.textContent = conversationState.pin_mapping || 'Auto-designated GPIOs';
+    if (elReqs) elReqs.textContent = conversationState.functional_requirements || 'Pending...';
+}
+
+function renderProjectSummaryCard() {
+    const messagesArea = document.getElementById('chat-messages-area');
+    if (!messagesArea || document.getElementById('project-summary-card')) return;
+
+    const summaryCard = document.createElement('div');
+    summaryCard.id = 'project-summary-card';
+    summaryCard.className = 'project-summary-card';
+    summaryCard.innerHTML = `
+        <div class="summary-title">📋 Project Architecture Summary</div>
+        <div class="summary-list">
+            <strong>• Objective:</strong> ${escapeHtml(conversationState.project_title || 'IoT Embedded Project')}<br>
+            <strong>• Target Board:</strong> ${escapeHtml(conversationState.microcontroller || 'ESP32 Dev Module')}<br>
+            <strong>• Components:</strong> ${escapeHtml(conversationState.components.join(', ') || 'Sensors & Actuators')}<br>
+            <strong>• Communication:</strong> ${escapeHtml(conversationState.communication_protocol || 'Local / WiFi')}
+        </div>
+        <button type="button" class="btn-generate-master" id="btn-trigger-master-gen">
+            ⚡ Generate Master Prompt
+        </button>
+    `;
+
+    messagesArea.appendChild(summaryCard);
+    scrollToBottom();
+
+    document.getElementById('btn-trigger-master-gen')?.addEventListener('click', generateFinalMasterPrompt);
+}
+
+/**
+ * Generate Master Prompt API trigger
+ */
+async function generateFinalMasterPrompt() {
+    const btn = document.getElementById('btn-trigger-master-gen');
+    const outputSection = document.getElementById('master-prompt-output-section');
+    const terminal = document.getElementById('prompt-code-terminal');
+    const tokenBadge = document.getElementById('output-token-badge');
+    const engineNameBadge = document.getElementById('output-engine-name');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⚡ Synthesizing Embedded C++ Master Prompt...';
+    }
+
+    if (outputSection) outputSection.classList.remove('hidden');
+    if (terminal) terminal.textContent = 'Synthesizing dense, token-optimized Master Prompt for Embedded C++ firmware...';
+
+    const payload = {
+        project_title: conversationState.project_title || 'IoT Smart Controller',
+        microcontroller: conversationState.microcontroller || 'ESP32 Dev Module',
+        framework: conversationState.framework || 'Arduino C++ (PlatformIO / Arduino IDE)',
+        components: conversationState.components.length > 0 ? conversationState.components : ['Sensors & Actuators'],
+        pin_mapping: conversationState.pin_mapping || null,
+        communication_protocol: conversationState.communication_protocol || null,
+        functional_requirements: conversationState.functional_requirements || 'Read sensors and trigger actuators non-blockingly.',
+        special_constraints: conversationState.special_constraints || 'Strictly non-blocking millis() / FreeRTOS, memory safe, no dynamic String.'
+    };
+
+    try {
+        if (isBackendAvailable) {
             const res = await fetch(`${API_BASE_URL}/generate-prompt`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            if (!res.ok) {
-                throw new Error(`Server returned HTTP ${res.status}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (terminal) terminal.textContent = data.master_prompt;
+                if (tokenBadge) tokenBadge.textContent = `~${data.tokens_estimated} tokens`;
+                if (engineNameBadge) engineNameBadge.textContent = data.engine_used;
+            } else {
+                throw new Error('API request failed');
             }
-
-            const data = await res.json();
-            terminal.textContent = data.master_prompt;
-            tokenBadge.textContent = `~${data.tokens_estimated} tokens`;
-            engineBadge.textContent = data.engine_used;
-
-        } catch (err) {
-            console.warn('Backend API request failed, executing client-side deterministic synthesis:', err);
-            
-            // Client-side fallback generation
-            const fallbackPrompt = generateClientSidePrompt(payload);
-            terminal.textContent = fallbackPrompt;
-            tokenBadge.textContent = `~${Math.round(fallbackPrompt.length / 4)} tokens`;
-            engineBadge.textContent = 'Deterministic Client Synthesizer (Backend Offline)';
-        } finally {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '⚡ Generate Master Prompt';
-            document.getElementById('output-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+            // Client side synthesis fallback
+            const prompt = generateClientSidePrompt(payload);
+            if (terminal) terminal.textContent = prompt;
+            if (tokenBadge) tokenBadge.textContent = `~${Math.round(prompt.length / 4)} tokens`;
+            if (engineNameBadge) engineNameBadge.textContent = 'Deterministic Client Synthesizer';
         }
-    });
+    } catch (err) {
+        console.warn('Master prompt generation error, using fallback:', err);
+        const prompt = generateClientSidePrompt(payload);
+        if (terminal) terminal.textContent = prompt;
+        if (tokenBadge) tokenBadge.textContent = `~${Math.round(prompt.length / 4)} tokens`;
+        if (engineNameBadge) engineNameBadge.textContent = 'Deterministic Client Synthesizer';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '✓ Master Prompt Generated Below!';
+        }
+        outputSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 /**
- * Client-side deterministic prompt synthesizer fallback
+ * Client-Side Deterministic Prompt Synthesizer
  */
 function generateClientSidePrompt(p) {
-    const compStr = p.components.length > 0 ? p.components.join(', ') : 'Standard GPIO & Sensors';
-    const pinStr = p.pin_mapping || 'Assign optimal, conflict-free hardware GPIO pins';
+    const compStr = p.components.length > 0 ? p.components.join(', ') : 'Standard GPIO & Peripherals';
+    const pinStr = p.pin_mapping || 'Assign optimal constexpr uint8_t pin constants';
     const protoStr = p.communication_protocol || 'Local event loop / GPIO';
-    const constrStr = p.special_constraints || 'Strictly non-blocking via millis() / FreeRTOS. Zero delay().';
+    const constrStr = p.special_constraints || 'Strictly non-blocking logic using millis() timers or FreeRTOS. Zero delay().';
 
     return `### 🎯 EMBEDDED C++ MASTER PROMPT FOR LLM
 
 **ROLE & TARGET:**
-Act as a Principal Embedded Systems Engineer. Write clean, memory-safe, and production-grade C++ firmware for **${p.microcontroller}** using **${p.framework}**.
+Act as a Senior Embedded Systems Engineer. Write clean, memory-safe, production-grade C++ firmware for **${p.microcontroller}** using **${p.framework}**.
 
-**PROJECT OVERVIEW:**
-- **Project Title:** ${p.project_title}
-- **Microcontroller:** ${p.microcontroller}
-- **Target Framework:** ${p.framework}
-- **Hardware Peripherals:** ${compStr}
-- **Pin / GPIO Mapping:** ${pinStr}
-- **Communication Stack:** ${protoStr}
+**PROJECT SPECIFICATION:**
+- **Title:** ${p.project_title}
+- **Target Microcontroller:** ${p.microcontroller}
+- **Framework / SDK:** ${p.framework}
+- **Peripherals & Sensors:** ${compStr}
+- **Pin Assignments:** ${pinStr}
+- **Communication Protocol:** ${protoStr}
 
-**OPERATIONAL LOGIC & REQUIREMENTS:**
+**FUNCTIONAL LOGIC & OPERATIONAL FLOW:**
 ${p.functional_requirements}
 
-**STRICT EMBEDDED C++ CONSTRAINTS:**
-1. **Concurrency:** ${constrStr}
-2. **Memory Safety:** Strictly avoid dynamic heap allocation (\`String\` objects). Use fixed-size buffers (\`snprintf\`), \`const char*\`, and stack variables to prevent heap fragmentation.
-3. **Fault Tolerance:** Add sensor initialization sanity checks, communication reconnect routines with exponential backoff, and watchdog support if applicable.
-4. **State Machine:** Implement explicit states via \`enum class SystemState\` and keep drivers modular.
-5. **Pin Constants:** Declare pins with \`constexpr uint8_t\` and inline hardware documentation.
+**STRICT EMBEDDED C++ ARCHITECTURAL CONSTRAINTS:**
+1. **Concurrency & Non-Blocking:** ${constrStr}
+2. **Memory Safety:** Strictly avoid dynamic heap allocations (\`String\` objects). Use fixed-size buffers (\`snprintf\`), \`const char*\`, and stack variables to prevent heap fragmentation.
+3. **Fault Tolerance:** Implement hardware initialization checks, communication reconnect logic with exponential backoff, and watchdog support.
+4. **State Machine:** Encapsulate states using \`enum class SystemState\` and keep peripheral drivers modular.
+5. **Pin Definitions:** Declare GPIO pins using \`constexpr uint8_t\` with inline documentation.
 
 **REQUIRED OUTPUT FROM TARGET LLM:**
-Provide the complete, compilable Embedded C++ code (.ino / .cpp) with all necessary library \`#include\` directives, hardware constants, setup initialization, and main event loop.`;
+Provide fully compilable, production-ready C++ firmware (.ino / .cpp) including all library \`#include\` directives, configuration constants, setup initialization, and main event loop.`;
 }
 
 /**
- * Copy to clipboard with visual feedback
+ * Setup Drawer & Action Buttons
  */
-function setupCopyButton() {
-    const copyBtn = document.getElementById('btn-copy-prompt');
-    const terminal = document.getElementById('prompt-terminal');
+function setupDrawerAndActions() {
+    const btnToggle = document.getElementById('btn-toggle-details');
+    const btnClose = document.getElementById('btn-close-drawer');
+    const drawer = document.getElementById('project-details-drawer');
+    const btnCopy = document.getElementById('btn-copy-prompt');
+    const btnRegenerate = document.getElementById('btn-regenerate-prompt');
+    const btnEdit = document.getElementById('btn-edit-project');
 
-    if (!copyBtn || !terminal) return;
+    btnToggle?.addEventListener('click', () => {
+        drawer?.classList.toggle('hidden');
+    });
 
-    copyBtn.addEventListener('click', async () => {
-        const text = terminal.textContent;
-        if (!text || terminal.classList.contains('empty-state')) {
-            alert('Please generate a master prompt first!');
-            return;
-        }
+    btnClose?.addEventListener('click', () => {
+        drawer?.classList.add('hidden');
+    });
+
+    btnCopy?.addEventListener('click', async () => {
+        const terminal = document.getElementById('prompt-code-terminal');
+        const text = terminal ? terminal.textContent : '';
+        if (!text) return;
 
         try {
             await navigator.clipboard.writeText(text);
-            const originalText = copyBtn.innerHTML;
-            copyBtn.classList.add('copied');
-            copyBtn.innerHTML = '✓ Copied to Clipboard!';
-            setTimeout(() => {
-                copyBtn.classList.remove('copied');
-                copyBtn.innerHTML = originalText;
-            }, 2500);
+            const orig = btnCopy.innerHTML;
+            btnCopy.innerHTML = '✓ Copied to Clipboard!';
+            setTimeout(() => { btnCopy.innerHTML = orig; }, 2500);
         } catch (err) {
-            console.error('Failed to copy: ', err);
-            // Fallback selection
-            const range = document.createRange();
-            range.selectNodeContents(terminal);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            document.execCommand('copy');
-            alert('Master Prompt copied to clipboard!');
+            console.error('Copy failed', err);
+            alert('Prompt copied!');
         }
     });
+
+    btnRegenerate?.addEventListener('click', () => {
+        generateFinalMasterPrompt();
+    });
+
+    btnEdit?.addEventListener('click', () => {
+        drawer?.classList.remove('hidden');
+        drawer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+}
+
+/**
+ * Utilities
+ */
+function getCurrentTimeString() {
+    const now = new Date();
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function scrollToBottom() {
+    const area = document.getElementById('chat-messages-area');
+    if (area) area.scrollTop = area.scrollHeight;
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }

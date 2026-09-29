@@ -4,10 +4,21 @@ import re
 import logging
 from typing import Tuple
 
+import json
+from typing import Tuple, Optional, Dict, Any
+
 try:
-    from models.prompt_schema import PromptGenerationRequest
+    from models.prompt_schema import (
+        PromptGenerationRequest,
+        ChatFollowupRequest,
+        ChatFollowupResponse
+    )
 except ModuleNotFoundError:
-    from backend.models.prompt_schema import PromptGenerationRequest
+    from backend.models.prompt_schema import (
+        PromptGenerationRequest,
+        ChatFollowupRequest,
+        ChatFollowupResponse
+    )
 
 logger = logging.getLogger("gemini_service")
 
@@ -110,3 +121,162 @@ Constraints: {req.special_constraints or 'Non-blocking, fault-tolerant, memory-s
     # Fallback if API calls fail
     prompt = build_deterministic_prompt(req)
     return prompt, estimate_tokens(prompt), "Deterministic Embedded Prompt Engine (API Call Fallback)"
+
+
+def deterministic_chat_parser(user_msgs: list, state: dict) -> Tuple[dict, Optional[str], bool, Optional[str]]:
+    """Deterministic natural language state extractor and single follow-up question generator."""
+    state = dict(state or {})
+    full_text = " ".join(user_msgs).lower()
+    last_msg = user_msgs[-1].lower() if user_msgs else ""
+    
+    # 1. Title / Objective
+    if not state.get("project_title") and user_msgs:
+        state["project_title"] = user_msgs[0].strip().capitalize()
+        
+    # 2. MCU detection
+    if not state.get("microcontroller"):
+        if "esp32" in full_text:
+            state["microcontroller"] = "ESP32 Dev Module (WROOM-32 / S3)"
+        elif "esp8266" in full_text or "nodemcu" in full_text:
+            state["microcontroller"] = "ESP8266 (NodeMCU v3 / D1 Mini)"
+        elif "uno" in full_text:
+            state["microcontroller"] = "Arduino Uno (ATmega328P)"
+        elif "nano" in full_text:
+            state["microcontroller"] = "Arduino Nano (ATmega328P)"
+        elif "stm32" in full_text or "blue pill" in full_text:
+            state["microcontroller"] = "STM32 Blue Pill (STM32F103C8T6)"
+        elif "pico" in full_text or "rp2040" in full_text:
+            state["microcontroller"] = "Raspberry Pi Pico (RP2040)"
+
+    # 3. Framework
+    if not state.get("framework"):
+        if "esp-idf" in full_text:
+            state["framework"] = "ESP-IDF C++ (FreeRTOS Native)"
+        elif "freertos" in full_text:
+            state["framework"] = "FreeRTOS on Arduino C++"
+        else:
+            state["framework"] = "Arduino C++ (PlatformIO / Arduino IDE)"
+
+    # 4. Components extraction
+    components = set(state.get("components") or [])
+    comp_keywords = {
+        "soil moisture": "Capacitive Soil Moisture Sensor",
+        "dht22": "DHT22 Temp & Humidity Sensor",
+        "dht11": "DHT11 Temp & Humidity Sensor",
+        "ultrasonic": "HC-SR04 Ultrasonic Distance Sensor",
+        "relay": "5V Relay Module",
+        "pump": "Water Pump Relay",
+        "oled": "SSD1306 128x64 I2C OLED Display",
+        "lcd": "16x2 I2C LCD Display",
+        "servo": "SG90 Micro Servo Motor",
+        "motor": "DC Motors & L298N Driver",
+        "buzzer": "Active Buzzer",
+        "pir": "PIR Motion Sensor",
+        "gas": "MQ-2 Gas Sensor",
+        "rfid": "RC522 RFID SPI Module"
+    }
+    for kw, comp_name in comp_keywords.items():
+        if kw in full_text:
+            components.add(comp_name)
+    state["components"] = list(components)
+
+    # 5. Protocol extraction
+    if not state.get("communication_protocol"):
+        if "mqtt" in full_text:
+            state["communication_protocol"] = "WiFi + MQTT Protocol"
+        elif "wifi" in full_text or "web server" in full_text or "http" in full_text:
+            state["communication_protocol"] = "WiFi + HTTP REST / Web Server"
+        elif "ble" in full_text or "bluetooth" in full_text:
+            state["communication_protocol"] = "Bluetooth LE (BLE)"
+        elif "i2c" in full_text:
+            state["communication_protocol"] = "I2C Bus"
+        elif "spi" in full_text:
+            state["communication_protocol"] = "SPI Bus"
+
+    # 6. Requirements
+    if user_msgs:
+        state["functional_requirements"] = " • ".join(user_msgs)
+
+    # Question sequencing: Ask missing details
+    q_count = max(0, len(user_msgs) - 1)
+    
+    if not state.get("microcontroller"):
+        return state, "Which microcontroller board are you planning to use (e.g., ESP32, Arduino Uno, ESP8266, or STM32)?", False, None
+    
+    if not state.get("components"):
+        return state, "Which sensors or actuators are connected (e.g., Soil Moisture Sensor, Relay Pump, OLED Display, DHT22)?", False, None
+
+    if "control" not in full_text and "automatically" not in full_text and "pump" not in full_text and "relay" not in full_text and q_count < 2:
+        return state, f"Great! Should your system automatically control an output (like a relay, pump, or motor) based on sensor readings?", False, None
+
+    if not state.get("communication_protocol") and q_count < 3:
+        return state, "Will this project connect over WiFi / MQTT for cloud telemetry, or operate locally/offline?", False, None
+
+    # Ready state reached after enough info collected
+    summary = f"{state.get('project_title', 'IoT System')} built on {state.get('microcontroller', 'Embedded MCU')} with {len(state.get('components', []))} component(s)."
+    return state, None, True, summary
+
+
+def process_chat_followup(req: ChatFollowupRequest) -> ChatFollowupResponse:
+    """Processes user message history, updates project state, and asks next question or prepares prompt synthesis."""
+    user_msgs = [m.content for m in req.messages if m.role == "user"]
+    state = req.current_state or {}
+    api_key = req.api_key or os.getenv("GEMINI_API_KEY")
+
+    if api_key and req.messages:
+        try:
+            prompt = f"""You are IoT Saathi, an expert AI embedded system architect.
+Analyze the user's project conversation history:
+{json.dumps([{"role": m.role, "content": m.content} for m in req.messages], indent=2)}
+
+Current extracted project state:
+{json.dumps(state, indent=2)}
+
+Task:
+1. Update project_state dictionary with extracted values:
+   - project_title
+   - microcontroller (e.g. ESP32, ESP8266, Arduino Uno, STM32, Raspberry Pi Pico)
+   - framework (e.g. Arduino C++, ESP-IDF C++, FreeRTOS)
+   - components (list of strings)
+   - pin_mapping
+   - communication_protocol
+   - functional_requirements
+   - special_constraints
+2. Determine if enough core project details are collected (Objective, MCU, primary components & basic logic flow).
+   - If YES: set ready_for_prompt = true, next_question = null, summary = concise overview.
+   - If NO: set ready_for_prompt = false, and ask ONE single friendly follow-up question asking for the next missing technical detail. Never re-ask for details already known!
+
+Output ONLY raw valid JSON:
+{{"project_state": {{...}}, "next_question": "...", "ready_for_prompt": false, "summary": "..."}}"""
+
+            from google import genai
+            client = genai.Client(api_key=api_key)
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt
+            )
+            if response and response.text:
+                cleaned = response.text.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+                data = json.loads(cleaned)
+                return ChatFollowupResponse(
+                    success=True,
+                    next_question=data.get("next_question"),
+                    ready_for_prompt=data.get("ready_for_prompt", False),
+                    questions_answered_count=max(0, len(user_msgs) - 1),
+                    project_state=data.get("project_state", state),
+                    summary=data.get("summary")
+                )
+        except Exception as e:
+            logger.warning(f"Gemini chat followup failed ({e}), using deterministic fallback.")
+
+    # Fallback execution
+    updated_state, next_q, is_ready, summary = deterministic_chat_parser(user_msgs, state)
+    return ChatFollowupResponse(
+        success=True,
+        next_question=next_q,
+        ready_for_prompt=is_ready,
+        questions_answered_count=max(0, len(user_msgs) - 1),
+        project_state=updated_state,
+        summary=summary
+    )
+

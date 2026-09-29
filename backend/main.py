@@ -17,9 +17,11 @@ if current_dir not in sys.path:
 from models.prompt_schema import (
     PromptGenerationRequest,
     PromptGenerationResponse,
-    ProjectTemplate
+    ProjectTemplate,
+    ChatFollowupRequest,
+    ChatFollowupResponse
 )
-from services.gemini_service import generate_master_prompt_with_gemini
+from services.gemini_service import generate_master_prompt_with_gemini, process_chat_followup
 from data.templates import TEMPLATES
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -80,6 +82,17 @@ def generate_prompt(req: PromptGenerationRequest):
     except Exception as e:
         logger.error(f"Error in generate_prompt: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate master prompt: {str(e)}")
+
+@app.post("/api/chat-followup", response_model=ChatFollowupResponse)
+def chat_followup(req: ChatFollowupRequest):
+    """
+    Conversational state extractor and follow-up question generator for IoT Saathi Chat UI.
+    """
+    try:
+        return process_chat_followup(req)
+    except Exception as e:
+        logger.error(f"Error in chat_followup: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
 
 if __name__ == "__main__":
     # pyrefly: ignore [missing-import]

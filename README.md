@@ -26,14 +26,19 @@ Beginners, students, and makers building IoT circuits frequently face two major 
 **IoT Saathi** is an end-to-end prototyping hub combining:
 - **Sensor Learning Hub:** Interactive encyclopedia of sensors with pinouts, specs, and reference docs.
 - **Project Blueprint Gallery:** Step-by-step schematics and wiring checklists for real-world projects.
-- **Embedded C++ Master Prompt Generator:** A dedicated engine powered by a Python backend and **Google Gemini API** that converts user requirements into **ultra-dense, token-minimized Master Prompts**. These prompts force frontier LLMs (Claude 3.5, GPT-4o, Gemini 2.0, DeepSeek) to generate production-ready, non-blocking Embedded C++ code without token waste.
+- **Conversational AI Master Prompt Engine:** A simple, modern AI-chat experience (similar to Gemini/ChatGPT) that asks one relevant follow-up question at a time to extract parameters ("What are you building?"), tracks project state in real-time, displays progress ("X questions answered"), and synthesizes ultra-dense, token-minimized Master Prompts powered by **Google Gemini API** or a deterministic fallback.
 
 ---
 
 ## 🧠 2. Approach and Logic
 
-### A. Two-Tier Modular Architecture
-The repository is split into two independent, maintainable layers:
+### A. Conversational State Extraction & Single-Question Flow
+Rather than forcing users to fill out complex technical forms, the new UX operates as a natural conversation with an embedded systems expert:
+1. **Landing State:** Starts with "What are you building?" and quick-starter blueprint chips (ESP32 Weather Station, Smart Irrigation, Home Automation, Robot Project).
+2. **Natural Language State Extraction:** Automatically parses user descriptions to extract objective, microcontroller, framework, components, protocols, pin mappings, and operational rules.
+3. **Turn-by-Turn Questioning:** Asks ONE single relevant follow-up question at a time, never re-asking for information already provided.
+4. **Real-time Progress & Details Drawer:** Shows a progress bar ("X questions answered") and collapsible architecture drawer.
+5. **Completion & Prompt Synthesis:** Once key parameters are gathered, presents a compact Project Summary card and triggers the Master Prompt Generator.
 ```
 iot-saathi/
 ├── backend/                  # Python FastAPI Backend Engine
