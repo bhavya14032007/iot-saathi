@@ -101,7 +101,57 @@
                     </div>
                 </div>
 
-                <!-- Product Table (Desktop) -->
+                <!-- Direct Quick Add Component Card -->
+                <div class="quick-add-card">
+                    <div class="quick-add-header">
+                        <h3>⚡ Direct Add Component</h3>
+                        <p>Fill in details below to instantly publish a new component to the E-Tron Store.</p>
+                    </div>
+                    <form id="quick-add-form" class="quick-add-form" novalidate>
+                        <div class="quick-add-grid">
+                            <div class="form-group">
+                                <label for="qa-name">Component Name *</label>
+                                <input type="text" id="qa-name" placeholder="e.g. ESP32-CAM Module" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qa-price">Price (₹) *</label>
+                                <input type="number" id="qa-price" placeholder="499" min="1" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="qa-category">Category</label>
+                                <select id="qa-category">
+                                    <option value="Microcontrollers">Microcontrollers</option>
+                                    <option value="Sensors">Sensors</option>
+                                    <option value="Actuators">Actuators</option>
+                                    <option value="Displays">Displays</option>
+                                    <option value="Modules" selected>Modules</option>
+                                    <option value="Connectors">Connectors</option>
+                                    <option value="Power">Power</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="qa-stock">Stock Quantity</label>
+                                <input type="number" id="qa-stock" placeholder="50" min="0" value="50">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="qa-description">Description</label>
+                                <input type="text" id="qa-description" placeholder="Short description of the component, pinouts, or specs...">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="qa-image">Image URL</label>
+                                <input type="url" id="qa-image" placeholder="https://example.com/image.png (or leave blank for default)">
+                            </div>
+                        </div>
+                        <div class="quick-add-actions">
+                            <button type="submit" class="btn-quick-add" id="btn-quick-add-submit">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Add Component Directly to Store
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
                 <div class="admin-table-wrapper">
                     <table class="admin-table">
                         <thead>

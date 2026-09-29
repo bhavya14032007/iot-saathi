@@ -532,6 +532,52 @@
         // Modal form submit
         if (modalForm) modalForm.addEventListener('submit', handleFormSubmit);
 
+        // Quick Add Form Submit
+        const quickAddForm = document.getElementById('quick-add-form');
+        const quickAddSubmitBtn = document.getElementById('btn-quick-add-submit');
+        if (quickAddForm) {
+            quickAddForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = (document.getElementById('qa-name')?.value || '').trim();
+                const price = parseFloat(document.getElementById('qa-price')?.value);
+                const category = (document.getElementById('qa-category')?.value || 'General').trim();
+                const stock = parseInt(document.getElementById('qa-stock')?.value, 10) || 0;
+                const description = (document.getElementById('qa-description')?.value || '').trim();
+                const image = (document.getElementById('qa-image')?.value || '').trim();
+
+                if (!name || name.length < 2) {
+                    showToast('Please enter a component name (at least 2 characters).');
+                    return;
+                }
+                if (!price || isNaN(price) || price <= 0) {
+                    showToast('Please enter a valid price greater than 0.');
+                    return;
+                }
+
+                if (quickAddSubmitBtn) quickAddSubmitBtn.disabled = true;
+
+                try {
+                    await apiCreateComponent({
+                        name,
+                        price,
+                        category,
+                        stock,
+                        description,
+                        image,
+                        active: true
+                    });
+                    showToast(`✨ Added "${name}" directly to store!`);
+                    quickAddForm.reset();
+                    document.getElementById('qa-stock').value = 50;
+                    await refreshDashboard();
+                } catch (err) {
+                    showToast(err.message || 'Failed to add component');
+                } finally {
+                    if (quickAddSubmitBtn) quickAddSubmitBtn.disabled = false;
+                }
+            });
+        }
+
         // Image preview on URL change
         const imgInput = document.getElementById('comp-image');
         if (imgInput) {

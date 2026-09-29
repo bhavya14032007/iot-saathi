@@ -224,6 +224,112 @@
 }
 
 /* --------------------------------------------------------------------------
+   Direct Quick Add Form Card
+   -------------------------------------------------------------------------- */
+.quick-add-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-sm);
+}
+
+.quick-add-header {
+    margin-bottom: var(--space-3);
+}
+
+.quick-add-header h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.quick-add-header p {
+    font-size: 0.88rem;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+}
+
+.quick-add-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-2);
+}
+
+.quick-add-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+.quick-add-grid label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+}
+
+.quick-add-grid input[type="text"],
+.quick-add-grid input[type="number"],
+.quick-add-grid input[type="url"],
+.quick-add-grid select {
+    width: 100%;
+    padding: 10px var(--space-2);
+    border: 1.5px solid var(--color-card-border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    background: var(--color-bg);
+    color: var(--color-text-main);
+    transition: border-color var(--transition-fast);
+    outline: none;
+    font-family: inherit;
+}
+
+.quick-add-grid input:focus,
+.quick-add-grid select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.quick-add-actions {
+    margin-top: var(--space-3);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-quick-add {
+    padding: 12px var(--space-4);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-teal);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all var(--transition-fast);
+}
+
+.btn-quick-add:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-quick-add:disabled {
+    background: var(--color-text-light);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* --------------------------------------------------------------------------
    Product Table
    -------------------------------------------------------------------------- */
 .admin-table-wrapper {
