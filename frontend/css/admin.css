@@ -1,0 +1,739 @@
+/* ==========================================================================
+   IoT Saathi - Admin Panel Styles
+   Reuses global design tokens from style.css
+   8px Grid | CSS Variables | Accessible Motion | Responsive
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Admin Layout
+   -------------------------------------------------------------------------- */
+.admin-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-4);
+}
+
+/* --------------------------------------------------------------------------
+   Admin Login Card
+   -------------------------------------------------------------------------- */
+.admin-login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: var(--space-4);
+}
+
+.admin-login-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    width: 100%;
+    max-width: 420px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.admin-login-card .admin-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--color-primary-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+    color: var(--color-primary);
+}
+
+.admin-login-card h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    margin-bottom: var(--space-1);
+}
+
+.admin-login-card p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+}
+
+.admin-login-card .form-group {
+    margin-bottom: var(--space-3);
+    text-align: left;
+}
+
+.admin-login-card label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-1);
+}
+
+.admin-login-card input[type="password"] {
+    width: 100%;
+    padding: 12px var(--space-2);
+    border: 1.5px solid var(--color-card-border);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    background: var(--color-bg);
+    color: var(--color-text-main);
+    transition: border-color var(--transition-fast);
+    outline: none;
+}
+
+.admin-login-card input[type="password"]:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.admin-login-card .btn-admin-login {
+    width: 100%;
+    padding: 12px;
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-teal);
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.admin-login-card .btn-admin-login:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.admin-login-card .btn-admin-login:disabled {
+    background: var(--color-text-light);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.admin-login-error {
+    color: var(--color-danger);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-top: var(--space-1);
+    display: none;
+}
+
+.admin-login-error.show {
+    display: block;
+}
+
+/* --------------------------------------------------------------------------
+   Admin Dashboard Header
+   -------------------------------------------------------------------------- */
+.admin-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.admin-dashboard-header h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.admin-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.btn-admin-action {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+}
+
+.btn-add-product {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    box-shadow: var(--shadow-teal);
+}
+
+.btn-add-product:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-admin-logout {
+    background: transparent;
+    border: 1.5px solid var(--color-card-border) !important;
+    color: var(--color-text-muted);
+}
+
+.btn-admin-logout:hover {
+    border-color: var(--color-danger) !important;
+    color: var(--color-danger);
+    background: rgba(239, 68, 68, 0.06);
+}
+
+/* --------------------------------------------------------------------------
+   Stats row
+   -------------------------------------------------------------------------- */
+.admin-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.stat-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--color-primary);
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Product Table
+   -------------------------------------------------------------------------- */
+.admin-table-wrapper {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.admin-table thead {
+    background: var(--color-bg);
+}
+
+.admin-table th {
+    padding: 14px var(--space-2);
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid var(--color-card-border);
+    white-space: nowrap;
+}
+
+.admin-table td {
+    padding: 12px var(--space-2);
+    border-bottom: 1px solid var(--color-card-border);
+    color: var(--color-text-main);
+    vertical-align: middle;
+}
+
+.admin-table tbody tr:hover {
+    background: var(--color-bg-alt);
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table .product-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    background: #fff;
+    border: 1px solid var(--color-card-border);
+    padding: 4px;
+}
+
+.admin-table .product-name-cell {
+    font-weight: 700;
+}
+
+.admin-table .price-cell {
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--color-success);
+}
+
+.status-badge.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-danger);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.btn-action-sm {
+    padding: 5px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1.5px solid var(--color-card-border);
+    background: var(--color-card);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+}
+
+.btn-action-sm:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: var(--color-primary-light);
+}
+
+.btn-action-sm.danger:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    background: rgba(239, 68, 68, 0.06);
+}
+
+.btn-action-sm.toggle:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+    background: rgba(245, 158, 11, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   Add/Edit Product Modal
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+    backdrop-filter: blur(4px);
+    padding: var(--space-3);
+}
+
+.modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-card {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 540px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px);
+    transition: transform var(--transition-normal);
+}
+
+.modal-overlay.open .modal-card {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-card-border);
+}
+
+.modal-header h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--color-text-main);
+}
+
+.btn-close-modal {
+    background: transparent;
+    border: 1.5px solid var(--color-card-border);
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    font-size: 1.2rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.btn-close-modal:hover {
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+
+.modal-body {
+    padding: var(--space-3);
+}
+
+.modal-body .form-group {
+    margin-bottom: var(--space-2);
+}
+
+.modal-body label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="number"],
+.modal-body input[type="url"],
+.modal-body textarea,
+.modal-body select {
+    width: 100%;
+    padding: 10px var(--space-2);
+    border: 1.5px solid var(--color-card-border);
+    border-radius: var(--radius-md);
+    font-size: 0.92rem;
+    background: var(--color-bg);
+    color: var(--color-text-main);
+    transition: border-color var(--transition-fast);
+    outline: none;
+    font-family: inherit;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus,
+.modal-body select:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.modal-body textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modal-body .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2);
+}
+
+.form-error {
+    font-size: 0.8rem;
+    color: var(--color-danger);
+    margin-top: 4px;
+    display: none;
+}
+
+.form-error.show {
+    display: block;
+}
+
+.modal-footer {
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-1);
+}
+
+.btn-modal-submit {
+    padding: 10px var(--space-3);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: var(--shadow-teal);
+    transition: all var(--transition-fast);
+}
+
+.btn-modal-submit:hover {
+    background: var(--color-primary-dark);
+    transform: translateY(-1px);
+}
+
+.btn-modal-submit:disabled {
+    background: var(--color-text-light);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-modal-cancel {
+    padding: 10px var(--space-3);
+    background: transparent;
+    border: 1.5px solid var(--color-card-border);
+    color: var(--color-text-muted);
+    border-radius: var(--radius-md);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-modal-cancel:hover {
+    border-color: var(--color-text-main);
+    color: var(--color-text-main);
+}
+
+/* Confirm dialog */
+.confirm-dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    z-index: 3500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+    backdrop-filter: blur(4px);
+}
+
+.confirm-dialog-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-dialog {
+    background: var(--color-card);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+}
+
+.confirm-dialog h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text-main);
+    margin-bottom: var(--space-1);
+}
+
+.confirm-dialog p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    gap: var(--space-1);
+    justify-content: center;
+}
+
+.btn-confirm-yes {
+    padding: 10px var(--space-3);
+    background: var(--color-danger);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+}
+
+.btn-confirm-yes:hover {
+    background: #dc2626;
+}
+
+.btn-confirm-no {
+    padding: 10px var(--space-3);
+    background: transparent;
+    border: 1.5px solid var(--color-card-border);
+    color: var(--color-text-muted);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-confirm-no:hover {
+    border-color: var(--color-text-main);
+    color: var(--color-text-main);
+}
+
+/* --------------------------------------------------------------------------
+   Image preview in modal
+   -------------------------------------------------------------------------- */
+.image-preview-box {
+    width: 100%;
+    height: 120px;
+    border: 2px dashed var(--color-card-border);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    margin-top: var(--space-1);
+    overflow: hidden;
+}
+
+.image-preview-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.image-preview-box .placeholder-text {
+    font-size: 0.85rem;
+    color: var(--color-text-light);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile table fallback
+   -------------------------------------------------------------------------- */
+.admin-cards-mobile {
+    display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced Motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .modal-overlay,
+    .modal-card,
+    .confirm-dialog-overlay {
+        transition-duration: 0.01ms;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 992px) {
+    .admin-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .admin-dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+    .modal-body .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Hide table, show card layout */
+    .admin-table-wrapper {
+        display: none;
+    }
+    .admin-cards-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+    }
+    .admin-mobile-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-card-border);
+        border-radius: var(--radius-lg);
+        padding: var(--space-2);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        gap: var(--space-2);
+    }
+    .admin-mobile-card .product-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+        border-radius: var(--radius-sm);
+        background: #fff;
+        border: 1px solid var(--color-card-border);
+        padding: 4px;
+        flex-shrink: 0;
+    }
+    .admin-mobile-card-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .admin-mobile-card-info h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+    .admin-mobile-card-info .price-stock {
+        font-size: 0.82rem;
+        color: var(--color-text-muted);
+        margin-bottom: var(--space-1);
+    }
+    .admin-mobile-card-info .price-stock strong {
+        color: var(--color-primary);
+    }
+    .admin-mobile-card-info .action-buttons {
+        margin-top: var(--space-1);
+    }
+    .admin-container {
+        padding: var(--space-2);
+    }
+}
+
+@media (max-width: 600px) {
+    .admin-login-card {
+        padding: var(--space-4);
+    }
+    .admin-stats-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
