@@ -50,7 +50,11 @@ async function checkBackendHealth() {
     const statusDot = document.getElementById('engine-status-dot');
 
     try {
-        const res = await fetch(`${API_BASE_URL}/health`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const res = await fetch(`${API_BASE_URL}/health`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (res.ok) {
             const data = await res.json();
             isBackendAvailable = true;
@@ -60,14 +64,16 @@ async function checkBackendHealth() {
                     : `IoT Saathi Engine • Deterministic Synthesis`;
                 statusDot.style.backgroundColor = 'var(--color-success)';
             }
+            return;
         }
     } catch (err) {
         console.warn('Backend server offline or starting up. Standalone client synthesis active.', err);
-        isBackendAvailable = false;
-        if (statusText && statusDot) {
-            statusText.textContent = 'Backend Offline (Using Standalone Client AI Synthesizer)';
-            statusDot.style.backgroundColor = 'var(--color-accent)';
-        }
+    }
+
+    isBackendAvailable = false;
+    if (statusText && statusDot) {
+        statusText.textContent = 'IoT Saathi Engine • Standalone AI Synthesizer';
+        statusDot.style.backgroundColor = 'var(--color-success)';
     }
 }
 
