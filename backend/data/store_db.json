@@ -133,7 +133,40 @@
       "created_at": "2026-09-29T07:18:34.890429"
     },
     {
-      "id": "comp-483fefc6",
+      "id": "comp-013",
+      "name": "NodeMCU ESP8266 V3",
+      "description": "Wi-Fi micro-controller board based on ESP-12E module.",
+      "price": 220.0,
+      "category": "Microcontrollers",
+      "image": "https://components101.com/sites/default/files/component_image/NodeMCU-ESP8266.jpg",
+      "stock": 50,
+      "active": true,
+      "created_at": "2026-09-29T07:29:39.550774"
+    },
+    {
+      "id": "comp-014",
+      "name": "NodeMCU ESP8266 V3",
+      "description": "Wi-Fi micro-controller board based on ESP-12E module.",
+      "price": 220.0,
+      "category": "Microcontrollers",
+      "image": "https://components101.com/sites/default/files/component_image/NodeMCU-ESP8266.jpg",
+      "stock": 50,
+      "active": true,
+      "created_at": "2026-09-29T07:29:39.550774"
+    },
+    {
+      "id": "comp-015",
+      "name": "NodeMCU ESP8266 V3",
+      "description": "Wi-Fi micro-controller board based on ESP-12E module.",
+      "price": 220.0,
+      "category": "Microcontrollers",
+      "image": "https://components101.com/sites/default/files/component_image/NodeMCU-ESP8266.jpg",
+      "stock": 50,
+      "active": true,
+      "created_at": "2026-09-29T07:29:39.550774"
+    },
+    {
+      "id": "comp-016",
       "name": "NodeMCU ESP8266 V3",
       "description": "Wi-Fi micro-controller board based on ESP-12E module.",
       "price": 220.0,
