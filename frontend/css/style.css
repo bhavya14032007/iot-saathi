@@ -491,19 +491,38 @@ footer.site-footer {
     margin-bottom: var(--space-6);
 }
 
+.footer-brand {
+    min-width: 0;
+}
+
 .footer-brand h4 {
     color: white;
     font-size: 1.3rem;
     margin-bottom: var(--space-1);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.footer-brand img {
+    height: 30px;
+    max-height: 30px;
+    width: auto;
+    max-width: 130px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    display: inline-block;
 }
 
 .footer-brand p {
     font-size: 0.9rem;
     line-height: 1.5;
     margin-bottom: var(--space-2);
+}
+
+.footer-column {
+    min-width: 0;
 }
 
 .footer-column h5 {
