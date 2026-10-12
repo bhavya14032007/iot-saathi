@@ -42,14 +42,15 @@ To eliminate slow loading times caused by external asset fetching or network lat
 3. **Instant Local Cache Sync:** Stores product lists in client-side storage so store navigation renders in `<20ms` regardless of server status.
 
 ### B. Admin Panel & Integrated Product Management UI
-1. **Accessible UI Navigation:** Prominent **Admin Panel** navigation links added across all main headers (`index.html`, `store.html`, `learning.html`, `build.html`, `prompt_generator.html`, `admin.html`).
-2. **One-Click Quick Admin Access:** Integrated guest/demo authentication option with clear password preset (`iotsaathi_admin_2026`).
+1. **Private Admin URL:** The **Admin Panel** link is protected and removed from public customer navigation (`admin.html` is accessed directly by the store administrator).
+2. **Secure Password Authentication:** Admin login requires the administrator password configured in `.env` (`ADMIN_PASSWORD`), with no exposed credentials or pre-filled forms.
 3. **Full CRUD Capability:** Complete interface to add new products, edit pricing/stock, toggle active visibility, and delete unwanted items.
 4. **Dual Persistence Sync:** All product modifications instantly commit to both the Python FastAPI JSON backend (`store_db.json`) and local browser storage (`iot_saathi_admin_products`).
+5. **Configurable Ordering Number:** The WhatsApp customer ordering contact is dynamically controlled via the `mobileNumber` (or `MOBILE_NUMBER`) environment variable.
 
 ### C. Landing Page Direct Store Redirection
 1. **Hero Action Button:** Added primary CTA `🛒 Explore E-Tron Store` directly inside the landing page hero section (`index.html`).
-2. **Featured Store Banner:** Added a dedicated hardware storefront banner with direct redirect links to `store.html` and `admin.html`.
+2. **Featured Store Banner:** Added a dedicated hardware storefront banner with direct redirect link to `store.html`.
 
 ---
 
@@ -121,8 +122,8 @@ sequenceDiagram
 ## 📋 4. Assumptions Made
 
 1. **Standalone & Backend Mode Compatibility:** System operates seamlessly either connected to the FastAPI backend or as a static frontend using local storage fallbacks.
-2. **WhatsApp Order Flow:** Orders generate pre-formatted WhatsApp messages targeting the configured business number (`919389860087`).
-3. **Single Admin Role:** Password-authenticated session token (`iotsaathi_admin_2026`) suitable for single-operator storefront management.
+2. **WhatsApp Order Flow:** Orders generate pre-formatted WhatsApp messages targeting the number configured in `.env` (`mobileNumber` or `MOBILE_NUMBER`).
+3. **Admin Panel Access:** Protected via the configured `ADMIN_PASSWORD` and intended for private access by the administrator directly via `/admin.html`.
 
 ---
 

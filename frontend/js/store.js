@@ -227,11 +227,14 @@
 
     async function fetchWhatsAppNumber() {
         try {
-            const res = await fetch(`${API_BASE}/config/whatsapp`);
+            const res = await fetch(`${API_BASE}/config`);
             if (res.ok) {
                 const data = await res.json();
-                if (data.whatsapp_number) whatsappNumber = data.whatsapp_number;
-                else if (data.number) whatsappNumber = data.number;
+                const num = data.mobileNumber || data.mobile_number || data.whatsapp_number || data.number;
+                if (num) {
+                    // Normalize number: remove spaces, dashes, or leading '+'
+                    whatsappNumber = String(num).replace(/[\s\-\+]/g, '');
+                }
             }
         } catch {
             // fallback already set

@@ -63,18 +63,13 @@
                     </div>
                     <h1>Store Admin Panel</h1>
                     <p>Manage E-Tron Store hardware inventory, add new products, edit pricing, or delete items.</p>
-                    <p style="font-size: 0.85rem; background: var(--color-primary-light); color: var(--color-primary-dark); padding: 6px 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-weight: 600;">
-                        🔑 Admin Password: <code>iotsaathi_admin_2026</code>
-                    </p>
+
                     <form id="admin-login-form" novalidate>
                         <div class="form-group">
                             <label for="admin-password">Admin Password</label>
-                            <input type="password" id="admin-password" name="password" placeholder="iotsaathi_admin_2026" autocomplete="current-password" value="iotsaathi_admin_2026" required>
+                            <input type="password" id="admin-password" name="password" placeholder="Enter admin password" autocomplete="current-password" required>
                         </div>
-                        <div style="display: flex; gap: 8px; flex-direction: column;">
-                            <button type="submit" class="btn-admin-login" id="btn-admin-login">Sign In to Admin Panel</button>
-                            <button type="button" class="btn-admin-login" id="btn-quick-login" style="background: var(--color-secondary); margin-top: 4px;">⚡ One-Click Quick Admin Access</button>
-                        </div>
+                        <button type="submit" class="btn-admin-login" id="btn-admin-login">Sign In to Admin Panel</button>
                         <p class="admin-login-error" id="admin-login-error" role="alert"></p>
                     </form>
                 </div>

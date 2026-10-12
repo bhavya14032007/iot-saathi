@@ -95,6 +95,22 @@ def health_check():
         "mode": "Gemini Live Synthesis" if has_api_key else "Deterministic Engine Mode"
     }
 
+@app.get("/api/config")
+@app.get("/api/config/whatsapp")
+def get_public_config():
+    """
+    Returns public site configuration for the frontend.
+    Exposes mobileNumber / MOBILE_NUMBER so the store can direct orders to the correct WhatsApp number.
+    Only non-sensitive public values are returned here.
+    """
+    number = os.getenv("mobileNumber") or os.getenv("MOBILE_NUMBER") or os.getenv("WHATSAPP_NUMBER", "919389860087")
+    return {
+        "mobile_number": number,
+        "mobileNumber": number,
+        "whatsapp_number": number,
+        "number": number
+    }
+
 @app.get("/api/templates", response_model=List[ProjectTemplate])
 def get_templates():
     """Returns curated starter templates for quick IoT project prompt generation."""

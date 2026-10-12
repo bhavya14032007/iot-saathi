@@ -605,13 +605,7 @@
             });
         }
 
-        const btnQuickLogin = document.getElementById('btn-quick-login');
-        if (btnQuickLogin) {
-            btnQuickLogin.addEventListener('click', async () => {
-                if (loginPasswordInput) loginPasswordInput.value = 'iotsaathi_admin_2026';
-                if (loginForm) loginForm.dispatchEvent(new Event('submit'));
-            });
-        }
+
 
         // Logout
         const btnLogout = document.getElementById('btn-admin-logout');
