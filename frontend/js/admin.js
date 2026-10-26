@@ -43,13 +43,24 @@
             const raw = window.IOT_SAATHI_DB_URL.replace(/\/+$/, '');
             return raw.endsWith('/api') ? raw : `${raw}/api`;
         }
+        if (window.IOT_SAATHI_CONFIG && window.IOT_SAATHI_CONFIG.DATABASE_URL) {
+            const raw = window.IOT_SAATHI_CONFIG.DATABASE_URL.replace(/\/+$/, '');
+            return raw.endsWith('/api') ? raw : `${raw}/api`;
+        }
         const stored = localStorage.getItem(DB_URL_STORAGE_KEY);
         if (stored) {
             const raw = stored.replace(/\/+$/, '');
             return raw.endsWith('/api') ? raw : `${raw}/api`;
         }
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://127.0.0.1:8001/api';
+        const host = window.location.hostname;
+        const isLocalNetwork = host === 'localhost' ||
+                               host === '127.0.0.1' ||
+                               host.startsWith('192.168.') ||
+                               host.startsWith('10.') ||
+                               host.startsWith('172.') ||
+                               host.endsWith('.local');
+        if (isLocalNetwork) {
+            return `http://${host}:8001/api`;
         }
         return 'https://iot-saathi-db.onrender.com/api';
     }
