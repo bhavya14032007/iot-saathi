@@ -1,0 +1,34 @@
+# ==============================================================================
+# Render Blueprint for IoT Saathi Database Service
+# Deploys:
+#   1) PostgreSQL Managed Database (Free tier on Render)
+#   2) Web Service (FastAPI + SQLAlchemy + Real-Time SSE)
+# ==============================================================================
+
+databases:
+  - name: iot-saathi-db
+    databaseName: iotsaathi
+    user: iotsaathi_user
+    plan: free
+    region: oregon
+
+services:
+  - type: web
+    name: iot-saathi-db-service
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: database
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: iot-saathi-db
+          property: connectionString
+      - key: ADMIN_PASSWORD
+        generateValue: true
+      - key: WHATSAPP_NUMBER
+        value: "919389860087"
+      - key: CORS_ORIGINS
+        value: "*"

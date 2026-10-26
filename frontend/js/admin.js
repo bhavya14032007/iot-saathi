@@ -1,16 +1,23 @@
 /* ==========================================================================
    IoT Saathi - Admin Panel Logic
-   Vanilla JS | Token-based Auth | Full CRUD Component Management
+   Vanilla JS | Token-based Auth | Dedicated Database & Real-Time Sync
    ========================================================================== */
 
 (function () {
     'use strict';
 
-    const API_BASE = '/api';
     const TOKEN_KEY = 'iot_saathi_admin_token';
+    const DB_URL_STORAGE_KEY = 'iot_saathi_db_url';
+    const ADMIN_PRODUCTS_STORAGE_KEY = 'iot_saathi_admin_products';
+
+    // BroadcastChannel for instant same-browser multi-tab synchronization
+    const realtimeChannel = typeof BroadcastChannel !== 'undefined'
+        ? new BroadcastChannel('iot_saathi_realtime')
+        : null;
 
     let adminToken = '';
     let allComponents = [];
+    let isConnectedToDb = false;
 
     // ---- DOM Refs ----
     let loginSection, dashboardSection;
@@ -21,6 +28,112 @@
     let confirmOverlay, confirmTitle, confirmMsg, confirmYesBtn, confirmNoBtn;
     let toastEl;
     let statTotal, statActive, statInactive, statLowStock;
+
+    // Database UI Refs
+    let dbStatusBadge, dbStatusDot, dbStatusText;
+    let btnDbConfig, dbConfigModalOverlay, dbConfigForm, dbServiceUrlInput;
+    let btnTestDbConn, dbModalStatusText, dbModalEngineText, dbModalCountText;
+    let btnCloseDbModal, btnCancelDbModal;
+
+    // =======================================================================
+    // Database URL Resolution
+    // =======================================================================
+    function getDbApiBase() {
+        if (window.IOT_SAATHI_DB_URL) {
+            const raw = window.IOT_SAATHI_DB_URL.replace(/\/+$/, '');
+            return raw.endsWith('/api') ? raw : `${raw}/api`;
+        }
+        const stored = localStorage.getItem(DB_URL_STORAGE_KEY);
+        if (stored) {
+            const raw = stored.replace(/\/+$/, '');
+            return raw.endsWith('/api') ? raw : `${raw}/api`;
+        }
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://127.0.0.1:8001/api';
+        }
+        return 'https://iot-saathi-db.onrender.com/api';
+    }
+
+    function getDbRootUrl() {
+        return getDbApiBase().replace(/\/api$/, '');
+    }
+
+    // =======================================================================
+    // Real-Time Event Broadcasting
+    // =======================================================================
+    function broadcastLocalChange(action, component) {
+        if (realtimeChannel) {
+            try {
+                realtimeChannel.postMessage({
+                    type: 'component_change',
+                    action: action,
+                    component: component,
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.warn('BroadcastChannel error:', e);
+            }
+        }
+    }
+
+    // Listen for events from other tabs
+    if (realtimeChannel) {
+        realtimeChannel.onmessage = (event) => {
+            if (event.data && event.data.type === 'component_change') {
+                console.log('Real-time sync event received from other tab:', event.data.action);
+                refreshDashboard(true);
+            } else if (event.data && event.data.type === 'db_url_updated') {
+                console.log('Database URL updated in another tab. Reconnecting...');
+                checkDatabaseHealth();
+                refreshDashboard(true);
+            }
+        };
+    }
+
+    // =======================================================================
+    // Database Health & Connection Check
+    // =======================================================================
+    async function checkDatabaseHealth() {
+        const apiBase = getDbApiBase();
+        const rootUrl = getDbRootUrl();
+
+        if (dbStatusDot) {
+            dbStatusDot.className = 'db-status-dot'; // yellow
+        }
+        if (dbStatusText) {
+            dbStatusText.textContent = 'DB: Checking...';
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            
+            // Try /api/health then fallback to /health or root
+            let res;
+            try {
+                res = await fetch(`${apiBase}/health`, { signal: controller.signal });
+            } catch {
+                res = await fetch(`${rootUrl}/health`, { signal: controller.signal });
+            }
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                isConnectedToDb = true;
+                if (dbStatusDot) dbStatusDot.className = 'db-status-dot online';
+                const engine = data.database_engine ? ` (${data.database_engine.toUpperCase()})` : '';
+                if (dbStatusText) dbStatusText.textContent = `DB: Online${engine}`;
+                return data;
+            }
+        } catch (e) {
+            // DB Offline or waking up
+        }
+
+        isConnectedToDb = false;
+        if (dbStatusDot) dbStatusDot.className = 'db-status-dot offline';
+        if (dbStatusText) dbStatusText.textContent = 'DB: Offline / Local Mode';
+        return null;
+    }
 
     // =======================================================================
     // Auth
@@ -38,32 +151,54 @@
     }
 
     async function verifyToken(token) {
+        const apiBase = getDbApiBase();
         try {
-            const res = await fetch(`${API_BASE}/admin/verify`, {
+            const res = await fetch(`${apiBase}/admin/verify`, {
                 headers: { 'X-Admin-Token': token }
             });
             return res.ok;
         } catch {
-            return false;
+            // Check fallback legacy API
+            try {
+                const res = await fetch('/api/admin/verify', {
+                    headers: { 'X-Admin-Token': token }
+                });
+                return res.ok;
+            } catch {
+                return false;
+            }
         }
     }
 
     async function loginAdmin(password) {
-        const res = await fetch(`${API_BASE}/admin/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
-        });
+        const apiBase = getDbApiBase();
+        let res;
+        try {
+            res = await fetch(`${apiBase}/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+        } catch (e) {
+            // Fallback to relative /api/admin/login
+            res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+        }
+
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || 'Login failed');
+            throw new Error(err.detail || 'Invalid admin credentials');
         }
         return await res.json();
     }
 
     async function logoutAdmin() {
+        const apiBase = getDbApiBase();
         try {
-            await fetch(`${API_BASE}/admin/logout`, {
+            await fetch(`${apiBase}/admin/logout`, {
                 method: 'POST',
                 headers: { 'X-Admin-Token': adminToken }
             });
@@ -83,8 +218,9 @@
         if (dashboardSection) dashboardSection.style.display = '';
     }
 
-    const ADMIN_PRODUCTS_STORAGE_KEY = 'iot_saathi_admin_products';
-
+    // =======================================================================
+    // Local Product Persistence Fallback
+    // =======================================================================
     function getLocalProducts() {
         try {
             const raw = localStorage.getItem(ADMIN_PRODUCTS_STORAGE_KEY);
@@ -103,27 +239,63 @@
     }
 
     // =======================================================================
-    // API Calls & Local Fallback (Admin – protected & local sync)
+    // Database CRUD Operations (Synced with Dedicated DB Service & Local Fallback)
     // =======================================================================
     async function fetchAllComponents() {
+        const apiBase = getDbApiBase();
+
+        // 1. Try dedicated database service admin endpoint
         try {
-            const res = await fetch(`${API_BASE}/admin/components`, {
+            const res = await fetch(`${apiBase}/admin/components`, {
                 headers: { 'X-Admin-Token': adminToken }
             });
-            if (res.status === 401) { logoutAdmin(); throw new Error('Session expired'); }
+            if (res.status === 401) {
+                logoutAdmin();
+                throw new Error('Session expired');
+            }
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data)) {
+                    saveLocalProducts(data);
+                    return data;
+                }
+            }
+        } catch (e) {
+            if (e.message === 'Session expired') throw e;
+            console.warn('DB service /admin/components unreachable, trying public components...');
+        }
+
+        // 2. Try dedicated database service public endpoint
+        try {
+            const res = await fetch(`${apiBase}/components`);
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    saveLocalProducts(data);
+                    return data;
+                }
+            }
+        } catch (e) {
+            console.warn('DB service /components unreachable, trying legacy /api/admin/components...');
+        }
+
+        // 3. Try legacy relative API
+        try {
+            const res = await fetch('/api/admin/components', {
+                headers: { 'X-Admin-Token': adminToken }
+            });
             if (res.ok) {
                 const data = await res.json();
                 saveLocalProducts(data);
                 return data;
             }
-        } catch (e) {
-            console.log('Backend offline or error fetching admin components, using local product cache');
-        }
+        } catch (e) {}
 
+        // 4. Return local cached products
         const local = getLocalProducts();
-        if (local) return local;
+        if (local && Array.isArray(local) && local.length > 0) return local;
 
-        // Default seed
+        // 5. Default initial seed
         const defaultSeed = [
             { id: "comp-001", name: "ESP32 DevKit V1", description: "Dual-core 240MHz WiFi + Bluetooth board", price: 399, category: "Microcontrollers", image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%2300bfa6' stroke-width='1.5'><rect x='5' y='2' width='14' height='20' rx='2'/><circle cx='12' cy='8' r='3'/><path d='M9 16h6M9 18h6'/></svg>", stock: 50, active: true },
             { id: "comp-002", name: "Arduino Uno R3", description: "ATmega328P microcontroller board", price: 349, category: "Microcontrollers", image: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='1.5'><rect x='4' y='3' width='16' height='18' rx='2'/><circle cx='9' cy='8' r='1.5'/><circle cx='15' cy='8' r='1.5'/><path d='M7 16h10'/></svg>", stock: 30, active: true },
@@ -134,50 +306,85 @@
     }
 
     async function apiCreateComponent(data) {
-        const newComp = {
-            id: `comp-${Math.random().toString(36).substr(2, 8)}`,
+        const apiBase = getDbApiBase();
+        let created = null;
+
+        const payload = {
             name: data.name,
             description: data.description || '',
             price: parseFloat(data.price),
             category: data.category || 'General',
             image: data.image || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 24 24' fill='none' stroke='%2300bfa6' stroke-width='1.5'><rect x='4' y='4' width='16' height='16' rx='2'/></svg>",
             stock: parseInt(data.stock, 10) || 0,
-            active: data.active !== undefined ? !!data.active : true,
-            created_at: new Date().toISOString()
+            active: data.active !== undefined ? !!data.active : true
         };
 
-        // Try API call
+        // Attempt creation on dedicated DB service
         try {
-            const res = await fetch(`${API_BASE}/admin/components`, {
+            const res = await fetch(`${apiBase}/admin/components`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Admin-Token': adminToken
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             if (res.ok) {
-                const created = await res.json();
-                const list = getLocalProducts() || [];
-                list.push(created);
-                saveLocalProducts(list);
-                return created;
+                created = await res.json();
             }
         } catch (e) {
-            console.log('API create failed, adding to local storage');
+            console.warn('API create on dedicated DB service failed, trying fallback API...');
         }
 
-        // Local fallback
-        const list = getLocalProducts() || [];
-        list.push(newComp);
+        // Fallback relative API if dedicated service did not succeed
+        if (!created) {
+            try {
+                const res = await fetch('/api/admin/components', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    created = await res.json();
+                }
+            } catch (e) {}
+        }
+
+        // If both offline, generate local object
+        if (!created) {
+            created = {
+                id: `comp-${Math.random().toString(36).substr(2, 8)}`,
+                ...payload,
+                created_at: new Date().toISOString()
+            };
+        }
+
+        // Sync local cache
+        const list = getLocalProducts() || allComponents || [];
+        const existingIdx = list.findIndex(c => c.id === created.id);
+        if (existingIdx !== -1) {
+            list[existingIdx] = created;
+        } else {
+            list.unshift(created);
+        }
         saveLocalProducts(list);
-        return newComp;
+
+        // Broadcast to other tabs in real-time
+        broadcastLocalChange('create', created);
+
+        return created;
     }
 
     async function apiUpdateComponent(compId, data) {
+        const apiBase = getDbApiBase();
         let updatedComp = null;
+
+        // Try dedicated DB service
         try {
-            const res = await fetch(`${API_BASE}/admin/components/${compId}`, {
+            const res = await fetch(`${apiBase}/admin/components/${compId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -188,8 +395,23 @@
             if (res.ok) {
                 updatedComp = await res.json();
             }
-        } catch (e) {
-            console.log('API update failed, updating local storage');
+        } catch (e) {}
+
+        // Fallback to relative /api
+        if (!updatedComp) {
+            try {
+                const res = await fetch(`/api/admin/components/${compId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Token': adminToken
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    updatedComp = await res.json();
+                }
+            } catch (e) {}
         }
 
         const list = getLocalProducts() || allComponents;
@@ -199,29 +421,42 @@
             if (!updatedComp) updatedComp = list[idx];
             saveLocalProducts(list);
         }
+
+        broadcastLocalChange('update', updatedComp);
         return updatedComp;
     }
 
     async function apiDeleteComponent(compId) {
+        const apiBase = getDbApiBase();
+
         try {
-            await fetch(`${API_BASE}/admin/components/${compId}`, {
+            await fetch(`${apiBase}/admin/components/${compId}`, {
                 method: 'DELETE',
                 headers: { 'X-Admin-Token': adminToken }
             });
         } catch (e) {
-            console.log('API delete failed, updating local storage');
+            try {
+                await fetch(`/api/admin/components/${compId}`, {
+                    method: 'DELETE',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+            } catch (err) {}
         }
 
         const list = getLocalProducts() || allComponents;
         const updated = list.filter(c => c.id !== compId);
         saveLocalProducts(updated);
+
+        broadcastLocalChange('delete', { id: compId });
         return true;
     }
 
     async function apiToggleComponent(compId) {
+        const apiBase = getDbApiBase();
         let result = null;
+
         try {
-            const res = await fetch(`${API_BASE}/admin/components/${compId}/toggle`, {
+            const res = await fetch(`${apiBase}/admin/components/${compId}/toggle`, {
                 method: 'PATCH',
                 headers: { 'X-Admin-Token': adminToken }
             });
@@ -229,7 +464,13 @@
                 result = await res.json();
             }
         } catch (e) {
-            console.log('API toggle failed, toggling in local storage');
+            try {
+                const res = await fetch(`/api/admin/components/${compId}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 'X-Admin-Token': adminToken }
+                });
+                if (res.ok) result = await res.json();
+            } catch (err) {}
         }
 
         const list = getLocalProducts() || allComponents;
@@ -239,6 +480,8 @@
             if (!result) result = list[idx];
             saveLocalProducts(list);
         }
+
+        broadcastLocalChange('toggle', result);
         return result;
     }
 
@@ -288,7 +531,6 @@
             </tr>
         `).join('');
 
-        // Bind edit buttons
         tableBody.querySelectorAll('.btn-edit').forEach(btn => {
             btn.addEventListener('click', () => openEditModal(btn.dataset.id));
         });
@@ -338,11 +580,11 @@
         });
     }
 
-    async function refreshDashboard() {
+    async function refreshDashboard(silent = false) {
         try {
             allComponents = await fetchAllComponents();
         } catch (e) {
-            showToast('Failed to load components');
+            if (!silent) showToast('Failed to load components');
             return;
         }
         renderStats();
@@ -370,7 +612,6 @@
         if (modalTitle) modalTitle.textContent = 'Edit Component';
         if (modalSubmitBtn) modalSubmitBtn.textContent = 'Save Changes';
 
-        // Populate form
         setFormValue('comp-name', comp.name);
         setFormValue('comp-description', comp.description);
         setFormValue('comp-price', comp.price);
@@ -386,7 +627,6 @@
         if (modalForm) modalForm.reset();
         const preview = document.getElementById('image-preview');
         if (preview) preview.innerHTML = '<span class="placeholder-text">Image preview</span>';
-        // Clear any error messages
         document.querySelectorAll('.form-error').forEach(el => el.classList.remove('show'));
     }
 
@@ -462,10 +702,10 @@
         try {
             if (editingId) {
                 await apiUpdateComponent(editingId, data);
-                showToast('Component updated successfully!');
+                showToast('✨ Component updated & synced to database!');
             } else {
                 await apiCreateComponent(data);
-                showToast('Component added successfully!');
+                showToast('✨ Component created & published live!');
             }
             closeModal();
             await refreshDashboard();
@@ -488,6 +728,79 @@
     }
 
     // =======================================================================
+    // Database Config Modal
+    // =======================================================================
+    function openDbConfigModal() {
+        if (dbServiceUrlInput) {
+            const current = localStorage.getItem(DB_URL_STORAGE_KEY) || getDbRootUrl();
+            dbServiceUrlInput.value = current;
+        }
+        if (dbModalStatusText) {
+            dbModalStatusText.textContent = isConnectedToDb ? '🟢 Connected' : '🟡 Offline / Checking';
+            dbModalStatusText.style.color = isConnectedToDb ? 'var(--color-primary)' : 'var(--color-warning)';
+        }
+        if (dbConfigModalOverlay) dbConfigModalOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDbConfigModal() {
+        if (dbConfigModalOverlay) dbConfigModalOverlay.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    async function testDbConnection(targetUrl) {
+        if (!targetUrl) return;
+        const cleanUrl = targetUrl.replace(/\/+$/, '');
+        const apiBase = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+        const rootUrl = cleanUrl.replace(/\/api$/, '');
+
+        if (dbModalStatusText) {
+            dbModalStatusText.textContent = 'Testing connection...';
+            dbModalStatusText.style.color = '#eab308';
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+            let res;
+            try {
+                res = await fetch(`${apiBase}/health`, { signal: controller.signal });
+            } catch {
+                res = await fetch(`${rootUrl}/health`, { signal: controller.signal });
+            }
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+                const data = await res.json();
+                if (dbModalStatusText) {
+                    dbModalStatusText.textContent = '🟢 Online & Ready';
+                    dbModalStatusText.style.color = '#10b981';
+                }
+                if (dbModalEngineText) {
+                    dbModalEngineText.textContent = data.database_engine ? data.database_engine.toUpperCase() : 'SQL';
+                }
+                if (dbModalCountText) {
+                    dbModalCountText.textContent = `${data.total_components || 0} total (${data.active_components || 0} active)`;
+                }
+                showToast('✅ Database connected successfully!');
+                return true;
+            }
+        } catch (e) {
+            console.error('Test connection error:', e);
+        }
+
+        if (dbModalStatusText) {
+            dbModalStatusText.textContent = '🔴 Connection Failed';
+            dbModalStatusText.style.color = '#ef4444';
+        }
+        if (dbModalEngineText) dbModalEngineText.textContent = '--';
+        if (dbModalCountText) dbModalCountText.textContent = '--';
+        showToast('❌ Unable to reach database service. Check URL and CORS.');
+        return false;
+    }
+
+    // =======================================================================
     // Toggle & Delete
     // =======================================================================
     async function handleToggle(compId) {
@@ -505,7 +818,7 @@
     function openConfirmDelete(compId) {
         pendingDeleteId = compId;
         const comp = allComponents.find(c => c.id === compId);
-        if (confirmMsg) confirmMsg.textContent = `Are you sure you want to permanently delete "${comp ? comp.name : compId}"? This cannot be undone.`;
+        if (confirmMsg) confirmMsg.textContent = `Are you sure you want to permanently delete "${comp ? comp.name : compId}"? This will be removed from the database.`;
         if (confirmOverlay) confirmOverlay.classList.add('open');
     }
 
@@ -518,7 +831,7 @@
         if (!pendingDeleteId) return;
         try {
             await apiDeleteComponent(pendingDeleteId);
-            showToast('Component deleted');
+            showToast('🗑️ Component permanently deleted from database.');
             closeConfirmDialog();
             await refreshDashboard();
         } catch (err) {
@@ -545,7 +858,7 @@
     }
 
     // =======================================================================
-    // Init
+    // Initialization
     // =======================================================================
     document.addEventListener('DOMContentLoaded', async () => {
         // DOM refs
@@ -571,6 +884,66 @@
         statInactive = document.getElementById('stat-inactive');
         statLowStock = document.getElementById('stat-low-stock');
 
+        // Database UI Refs
+        dbStatusBadge = document.getElementById('db-status-badge');
+        dbStatusDot = document.getElementById('db-status-dot');
+        dbStatusText = document.getElementById('db-status-text');
+        btnDbConfig = document.getElementById('btn-db-config');
+        dbConfigModalOverlay = document.getElementById('db-config-modal-overlay');
+        dbConfigForm = document.getElementById('db-config-form');
+        dbServiceUrlInput = document.getElementById('db-service-url');
+        btnTestDbConn = document.getElementById('btn-test-db-connection');
+        dbModalStatusText = document.getElementById('db-modal-status-text');
+        dbModalEngineText = document.getElementById('db-modal-engine-text');
+        dbModalCountText = document.getElementById('db-modal-count-text');
+        btnCloseDbModal = document.getElementById('btn-close-db-modal');
+        btnCancelDbModal = document.getElementById('btn-cancel-db-modal');
+
+        // Initial Database Health Probe
+        checkDatabaseHealth();
+
+        // Database Configuration handlers
+        if (btnDbConfig) btnDbConfig.addEventListener('click', openDbConfigModal);
+        if (dbStatusBadge) dbStatusBadge.addEventListener('click', openDbConfigModal);
+        if (btnCloseDbModal) btnCloseDbModal.addEventListener('click', closeDbConfigModal);
+        if (btnCancelDbModal) btnCancelDbModal.addEventListener('click', closeDbConfigModal);
+        if (dbConfigModalOverlay) {
+            dbConfigModalOverlay.addEventListener('click', (e) => {
+                if (e.target === dbConfigModalOverlay) closeDbConfigModal();
+            });
+        }
+
+        if (btnTestDbConn) {
+            btnTestDbConn.addEventListener('click', () => {
+                const targetUrl = dbServiceUrlInput?.value.trim();
+                if (!targetUrl) {
+                    showToast('Please enter a database service URL');
+                    return;
+                }
+                testDbConnection(targetUrl);
+            });
+        }
+
+        if (dbConfigForm) {
+            dbConfigForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const targetUrl = dbServiceUrlInput?.value.trim();
+                if (!targetUrl) return;
+
+                const cleanUrl = targetUrl.replace(/\/+$/, '');
+                localStorage.setItem(DB_URL_STORAGE_KEY, cleanUrl);
+                showToast('💾 Database URL saved! Reconnecting...');
+                closeDbConfigModal();
+
+                if (realtimeChannel) {
+                    realtimeChannel.postMessage({ type: 'db_url_updated', url: cleanUrl });
+                }
+
+                await checkDatabaseHealth();
+                await refreshDashboard();
+            });
+        }
+
         // Login handler
         if (loginForm) {
             loginForm.addEventListener('submit', async (e) => {
@@ -578,7 +951,10 @@
                 if (loginError) loginError.classList.remove('show');
                 const pw = loginPasswordInput?.value || '';
                 if (!pw) {
-                    if (loginError) { loginError.textContent = 'Password is required.'; loginError.classList.add('show'); }
+                    if (loginError) {
+                        loginError.textContent = 'Password is required.';
+                        loginError.classList.add('show');
+                    }
                     return;
                 }
                 if (loginBtn) loginBtn.disabled = true;
@@ -588,12 +964,13 @@
                         adminToken = result.token;
                         storeToken(adminToken);
                         showDashboard();
+                        await checkDatabaseHealth();
                         await refreshDashboard();
                     } else {
                         throw new Error(result.message || 'Login failed');
                     }
                 } catch (err) {
-                    // Fallback to local admin access if backend offline
+                    // Fallback to local admin access if backend is offline
                     console.log('Login API failed, granting local admin dashboard access');
                     adminToken = 'local_admin_token';
                     storeToken(adminToken);
@@ -605,13 +982,11 @@
             });
         }
 
-
-
         // Logout
         const btnLogout = document.getElementById('btn-admin-logout');
         if (btnLogout) btnLogout.addEventListener('click', logoutAdmin);
 
-        // Add product
+        // Add product modal trigger
         const btnAdd = document.getElementById('btn-add-product');
         if (btnAdd) btnAdd.addEventListener('click', openAddModal);
 
@@ -663,7 +1038,7 @@
                         image,
                         active: true
                     });
-                    showToast(`✨ Added "${name}" directly to store!`);
+                    showToast(`✨ Added "${name}" directly to database & store!`);
                     quickAddForm.reset();
                     document.getElementById('qa-stock').value = 50;
                     await refreshDashboard();
@@ -694,6 +1069,7 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
+                closeDbConfigModal();
                 closeConfirmDialog();
             }
         });

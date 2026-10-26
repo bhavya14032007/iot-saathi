@@ -81,14 +81,24 @@
             <div class="admin-container">
                 <!-- Dashboard Header -->
                 <div class="admin-dashboard-header">
-                    <h1>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                        </svg>
-                        Product Dashboard
-                    </h1>
+                    <div class="admin-title-group">
+                        <h1>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                            Product Dashboard
+                        </h1>
+                        <div class="db-status-badge" id="db-status-badge" title="Click to view database connection details">
+                            <span class="db-status-dot" id="db-status-dot"></span>
+                            <span id="db-status-text">DB: Checking...</span>
+                        </div>
+                    </div>
                     <div class="admin-actions">
+                        <button type="button" class="btn-admin-action btn-db-config" id="btn-db-config" title="Configure Database Connection URL">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            DB Config
+                        </button>
                         <button type="button" class="btn-admin-action btn-add-product" id="btn-add-product">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             Add Component
@@ -271,6 +281,52 @@
                 <button type="button" class="btn-confirm-no" id="btn-confirm-no">Cancel</button>
                 <button type="button" class="btn-confirm-yes" id="btn-confirm-yes">Delete</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Database Configuration Modal -->
+    <div class="modal-overlay" id="db-config-modal-overlay" aria-hidden="true">
+        <div class="modal-card db-modal-card" role="dialog" aria-labelledby="db-config-modal-title">
+            <div class="modal-header">
+                <h2 id="db-config-modal-title">⚙️ Database Connection Settings</h2>
+                <button type="button" class="btn-close-modal" id="btn-close-db-modal" aria-label="Close database configuration">&times;</button>
+            </div>
+            <form id="db-config-form" novalidate>
+                <div class="modal-body">
+                    <p style="font-size:0.9rem; color:var(--color-text-muted); margin-bottom:var(--space-3);">
+                        Connect this admin panel and storefront to your dedicated Render database service or local backend. All changes sync in <strong>real time</strong> across the website.
+                    </p>
+                    <div class="form-group">
+                        <label for="db-service-url">Database Service Base URL</label>
+                        <input type="url" id="db-service-url" placeholder="https://iot-saathi-db.onrender.com" required>
+                        <span class="db-hint">Example: <code>https://your-service.onrender.com</code> or <code>http://127.0.0.1:8001</code> for local.</span>
+                    </div>
+
+                    <div class="db-connection-status-box" id="db-connection-status-box">
+                        <div class="db-conn-row">
+                            <span>Status:</span>
+                            <strong id="db-modal-status-text">Not Tested</strong>
+                        </div>
+                        <div class="db-conn-row">
+                            <span>Engine:</span>
+                            <span id="db-modal-engine-text">--</span>
+                        </div>
+                        <div class="db-conn-row">
+                            <span>Components in DB:</span>
+                            <span id="db-modal-count-text">--</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+                    <button type="button" class="btn-admin-action" id="btn-test-db-connection" style="background:var(--color-surface-hover); color:var(--color-text-main); border:1px solid var(--color-card-border);">
+                        🔌 Test Connection
+                    </button>
+                    <div style="display:flex; gap:var(--space-2);">
+                        <button type="button" class="btn-modal-cancel" id="btn-cancel-db-modal">Cancel</button>
+                        <button type="submit" class="btn-modal-submit" id="btn-save-db-modal">Save & Connect</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -10,12 +10,38 @@
     // WhatsApp number: loaded from the backend /api/config endpoint,
     // falling back to a sensible default that matches backend/.env
     const FALLBACK_WHATSAPP_NUMBER = '919389860087';
-    const API_BASE = '/api';
+    const DB_URL_STORAGE_KEY = 'iot_saathi_db_url';
     const CART_STORAGE_KEY = 'iot_saathi_cart';
+    const ADMIN_PRODUCTS_STORAGE_KEY = 'iot_saathi_admin_products';
+
+    // BroadcastChannel for instant same-browser multi-tab synchronization
+    const realtimeChannel = typeof BroadcastChannel !== 'undefined'
+        ? new BroadcastChannel('iot_saathi_realtime')
+        : null;
 
     let whatsappNumber = FALLBACK_WHATSAPP_NUMBER;
     let allComponents = [];
     let activeCategory = 'All';
+    let sseSource = null;
+
+    // =======================================================================
+    // Database API URL Resolution
+    // =======================================================================
+    function getDbApiBase() {
+        if (window.IOT_SAATHI_DB_URL) {
+            const raw = window.IOT_SAATHI_DB_URL.replace(/\/+$/, '');
+            return raw.endsWith('/api') ? raw : `${raw}/api`;
+        }
+        const stored = localStorage.getItem(DB_URL_STORAGE_KEY);
+        if (stored) {
+            const raw = stored.replace(/\/+$/, '');
+            return raw.endsWith('/api') ? raw : `${raw}/api`;
+        }
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://127.0.0.1:8001/api';
+        }
+        return 'https://iot-saathi-db.onrender.com/api';
+    }
 
     // ---- DOM Refs (resolved after DOMContentLoaded) ----
     let storeGrid, filterBar, cartDrawer, cartOverlay, cartItemsList, cartFooter;
@@ -198,26 +224,38 @@
     }
 
     // =======================================================================
-    // API & Instant Data Loading
+    // API & Instant Data Loading from Dedicated Database Service
     // =======================================================================
     async function fetchComponentsWithTimeout() {
+        const apiBase = getDbApiBase();
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1200);
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
 
+        // 1. Try dedicated database service /components
         try {
-            const res = await fetch(`${API_BASE}/store/components`, { signal: controller.signal });
+            const res = await fetch(`${apiBase}/components`, { signal: controller.signal });
             clearTimeout(timeoutId);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-                return data;
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    return data;
+                }
             }
         } catch (err) {
             clearTimeout(timeoutId);
-            console.log('API fetch timed out or offline, using cached/local components.');
+            console.log('Database service fetch timed out or offline, trying fallback API...');
         }
 
-        // Return admin modified local storage or seed
+        // 2. Try legacy /api/store/components
+        try {
+            const fallbackRes = await fetch('/api/store/components');
+            if (fallbackRes.ok) {
+                const data = await fallbackRes.json();
+                if (Array.isArray(data) && data.length > 0) return data;
+            }
+        } catch (e) {}
+
+        // 3. Return admin-modified local storage cache
         const local = getStoredProductsLocal();
         if (local && Array.isArray(local) && local.length > 0) {
             return local.filter(c => c.active !== false);
@@ -226,18 +264,109 @@
     }
 
     async function fetchWhatsAppNumber() {
+        const apiBase = getDbApiBase();
         try {
-            const res = await fetch(`${API_BASE}/config`);
-            if (res.ok) {
+            let res;
+            try {
+                res = await fetch(`${apiBase}/config`);
+            } catch {
+                res = await fetch('/api/config');
+            }
+            if (res && res.ok) {
                 const data = await res.json();
                 const num = data.mobileNumber || data.mobile_number || data.whatsapp_number || data.number;
                 if (num) {
-                    // Normalize number: remove spaces, dashes, or leading '+'
                     whatsappNumber = String(num).replace(/[\s\-\+]/g, '');
                 }
             }
         } catch {
             // fallback already set
+        }
+    }
+
+    // =======================================================================
+    // Real-Time Server-Sent Events (SSE) & Cross-Tab Sync
+    // =======================================================================
+    function setupRealtimeSync() {
+        const apiBase = getDbApiBase();
+
+        // 1. Server-Sent Events (SSE) from dedicated database service
+        try {
+            if (typeof EventSource !== 'undefined') {
+                if (sseSource) {
+                    sseSource.close();
+                }
+                const sseUrl = `${apiBase}/events`;
+                sseSource = new EventSource(sseUrl);
+
+                sseSource.addEventListener('component_created', async (e) => {
+                    try {
+                        const payload = JSON.parse(e.data);
+                        const comp = payload.payload || payload;
+                        console.log('⚡ Real-time SSE: Component created:', comp.name);
+                        showToast(`✨ Live: "${comp.name || 'Component'}" added to catalog!`);
+                        await reloadCatalogSilently();
+                    } catch (err) {
+                        console.error('Error handling SSE create event:', err);
+                    }
+                });
+
+                sseSource.addEventListener('component_updated', async (e) => {
+                    try {
+                        const payload = JSON.parse(e.data);
+                        const comp = payload.payload || payload;
+                        console.log('⚡ Real-time SSE: Component updated:', comp.name);
+                        showToast(`⚡ Live: "${comp.name || 'Component'}" updated!`);
+                        await reloadCatalogSilently();
+                    } catch (err) {}
+                });
+
+                sseSource.addEventListener('component_deleted', async (e) => {
+                    try {
+                        console.log('⚡ Real-time SSE: Component deleted');
+                        await reloadCatalogSilently();
+                    } catch (err) {}
+                });
+
+                sseSource.addEventListener('component_toggled', async (e) => {
+                    try {
+                        await reloadCatalogSilently();
+                    } catch (err) {}
+                });
+
+                sseSource.onerror = () => {
+                    // SSE connection error, EventSource auto-reconnects
+                };
+            }
+        } catch (e) {
+            console.log('SSE connection skipped or unsupported');
+        }
+
+        // 2. BroadcastChannel for 0ms same-browser tab synchronization
+        if (realtimeChannel) {
+            realtimeChannel.onmessage = async (event) => {
+                if (event.data && event.data.type === 'component_change') {
+                    console.log('⚡ BroadcastChannel event received:', event.data.action);
+                    const compName = event.data.component?.name || 'Component';
+                    if (event.data.action === 'create') {
+                        showToast(`✨ New: "${compName}" is now available in store!`);
+                    }
+                    await reloadCatalogSilently();
+                } else if (event.data && event.data.type === 'db_url_updated') {
+                    console.log('Database URL updated, reconnecting SSE...');
+                    setupRealtimeSync();
+                    await reloadCatalogSilently();
+                }
+            };
+        }
+    }
+
+    async function reloadCatalogSilently() {
+        const fresh = await fetchComponentsWithTimeout();
+        if (Array.isArray(fresh) && fresh.length > 0) {
+            allComponents = fresh;
+            renderFilterBar(allComponents);
+            renderProductGrid(allComponents);
         }
     }
 
@@ -533,5 +662,8 @@
         renderProductGrid(allComponents);
         renderCartDrawer();
         renderCartBadge();
+
+        // Initialize Real-Time SSE and Cross-Tab Synchronization
+        setupRealtimeSync();
     });
 })();

@@ -1,4 +1,11 @@
 {
+  "name": "iot-saathi",
+  "version": "2.0.0",
+  "scripts": {
+    "start:db": "uvicorn database.main:app --port 8001 --reload",
+    "test:db": "python database/test_db.py",
+    "start:backend": "uvicorn backend.main:app --port 8000 --reload"
+  },
   "dependencies": {
     "@vercel/analytics": "^2.0.1"
   }

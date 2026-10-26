@@ -37,3 +37,8 @@ wheels/
 Thumbs.db
 .idea/
 .vscode/
+
+# SQLite Databases
+*.db
+*.sqlite
+*.sqlite3
