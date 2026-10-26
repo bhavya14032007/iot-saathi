@@ -128,8 +128,6 @@
         return getCart().reduce((sum, item) => sum + item.qty, 0);
     }
 
-    const ADMIN_PRODUCTS_STORAGE_KEY = 'iot_saathi_admin_products';
-
     const INITIAL_SEED_COMPONENTS = [
         {
             "id": "comp-001",
@@ -641,27 +639,30 @@
             if (e.key === 'Escape') closeCart();
         });
 
-        // Show loading
-        if (storeGrid) {
-            storeGrid.innerHTML = `
-                <div class="store-loading-state" style="grid-column: 1 / -1;">
-                    <div class="spinner"></div>
-                    <p>Loading components...</p>
-                </div>`;
-        }
+        // Instant first paint from local cache or seed (0ms latency)
+        const cachedProducts = getStoredProductsLocal();
+        allComponents = (cachedProducts && cachedProducts.length > 0)
+            ? cachedProducts.filter(c => c.active !== false)
+            : INITIAL_SEED_COMPONENTS;
 
-        // Fetch data concurrently with instant fallback
-        const [compResult] = await Promise.all([
-            fetchComponentsWithTimeout(),
-            fetchWhatsAppNumber()
-        ]);
-        allComponents = compResult || [];
-
-        // Render
         renderFilterBar(allComponents);
         renderProductGrid(allComponents);
         renderCartDrawer();
         renderCartBadge();
+
+        // Fetch latest updates in background from database
+        Promise.all([
+            fetchComponentsWithTimeout(),
+            fetchWhatsAppNumber()
+        ]).then(([compResult]) => {
+            if (compResult && Array.isArray(compResult) && compResult.length > 0) {
+                allComponents = compResult;
+                renderFilterBar(allComponents);
+                renderProductGrid(allComponents);
+            }
+        }).catch(err => {
+            console.log('Background DB fetch error, using cached components:', err);
+        });
 
         // Initialize Real-Time SSE and Cross-Tab Synchronization
         setupRealtimeSync();
