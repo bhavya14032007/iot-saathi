@@ -39,7 +39,8 @@ from services.store_service import (
     create_component,
     update_component,
     delete_component,
-    toggle_component_active
+    toggle_component_active,
+    check_db_health
 )
 from data.templates import TEMPLATES
 
@@ -84,15 +85,23 @@ def _verify_admin_token(x_admin_token: Optional[str] = Header(default=None)) -> 
 # --------------------------------------------------------------------------
 
 @app.get("/api/health")
+@app.get("/health")
 def health_check():
-    """Health status check and API key detection."""
+    """Genuine health check that tests database connectivity, latency, and counts."""
+    db_health = check_db_health()
     has_api_key = bool(os.getenv("GEMINI_API_KEY"))
+    is_healthy = db_health.get("status") == "connected"
     return {
-        "status": "healthy",
+        "status": "healthy" if is_healthy else "degraded",
         "service": "IoT Saathi Backend API",
         "version": "1.0.0",
         "gemini_api_configured": has_api_key,
-        "mode": "Gemini Live Synthesis" if has_api_key else "Deterministic Engine Mode"
+        "mode": "Gemini Live Synthesis" if has_api_key else "Deterministic Engine Mode",
+        "database": db_health,
+        # Direct backward-compatibility fields for database dashboard
+        "database_engine": db_health.get("engine", "unknown"),
+        "total_components": db_health.get("total_components", 0),
+        "active_components": db_health.get("active_components", 0)
     }
 
 @app.get("/api/config")
@@ -182,12 +191,14 @@ def verify_admin_token(token: str = Depends(_verify_admin_token)):
 # --------------------------------------------------------------------------
 
 @app.get("/api/store/components", response_model=List[ComponentResponse])
+@app.get("/api/components", response_model=List[ComponentResponse])
 def list_store_components():
     """Returns all active components visible in the public store."""
     return get_active_components()
 
 
 @app.get("/api/store/components/{comp_id}", response_model=ComponentResponse)
+@app.get("/api/components/{comp_id}", response_model=ComponentResponse)
 def get_store_component(comp_id: str):
     """Returns a single component by ID (public – only active)."""
     comp = get_component_by_id(comp_id)

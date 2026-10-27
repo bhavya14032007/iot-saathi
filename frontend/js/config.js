@@ -4,7 +4,7 @@
  */
 
 window.IOT_SAATHI_CONFIG = {
-    // Render Database Service URL (once deployed on Render, update this URL so all devices connect)
+    // Production Render Backend API & Database Service URL
     DATABASE_URL: 'https://iot-saathi-db.onrender.com',
 
     // Prompt Engine API URL (Backend on Render)
