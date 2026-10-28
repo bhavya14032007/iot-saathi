@@ -56,7 +56,7 @@
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Structure 
 
 ```
 iot-saathi/
